@@ -9,10 +9,11 @@ import UIKit
 
 class WelcomeViewController: UIViewController {
     
-    @IBOutlet weak var iconImageView: UIImageView!
-    @IBOutlet weak var titleLabel: UILabel!
-    @IBOutlet weak var subtitleLabel: UILabel!
-    @IBOutlet weak var getStartedButton: UIButton!
+    @IBOutlet weak var appLogoImageView: UIImageView?
+    @IBOutlet weak var iconImageView: UIImageView?
+    @IBOutlet weak var titleLabel: UILabel?
+    @IBOutlet weak var subtitleLabel: UILabel?
+    @IBOutlet weak var getStartedButton: UIButton?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,36 +23,42 @@ class WelcomeViewController: UIViewController {
     private func setupUI() {
         view.backgroundColor = Constants.UI.Colors.backgroundDark
         
-        titleLabel.text = "Smart Stock\nScreening"
-        titleLabel.font = .systemFont(ofSize: 36, weight: .bold)
-        titleLabel.textColor = .white
-        titleLabel.numberOfLines = 0
-        titleLabel.textAlignment = .center
+        appLogoImageView?.layer.cornerRadius = 16
+        appLogoImageView?.clipsToBounds = true
+        appLogoImageView?.backgroundColor = UIColor(white: 1.0, alpha: 0.1)
         
-        subtitleLabel.text = "Track real-time market data and\ndiscover high-potential stocks\ninstantly."
-        subtitleLabel.font = .systemFont(ofSize: 16, weight: .regular)
-        subtitleLabel.textColor = Constants.UI.Colors.textSecondary
-        subtitleLabel.numberOfLines = 0
-        subtitleLabel.textAlignment = .center
+        let title = NSMutableAttributedString()
+        title.append(NSAttributedString(string: "Smart Stock\n", attributes: [
+            .foregroundColor: UIColor.white,
+            .font: UIFont.systemFont(ofSize: 36, weight: .bold)
+        ]))
+        title.append(NSAttributedString(string: "Screening", attributes: [
+            .foregroundColor: Constants.UI.Colors.primary,
+            .font: UIFont.systemFont(ofSize: 36, weight: .bold)
+        ]))
+        titleLabel?.attributedText = title
+        titleLabel?.numberOfLines = 0
+        titleLabel?.textAlignment = .center
         
-        getStartedButton.setTitle("Get Started", for: .normal)
-        getStartedButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        getStartedButton.backgroundColor = Constants.UI.Colors.primary
-        getStartedButton.setTitleColor(Constants.UI.Colors.backgroundDark, for: .normal)
-        getStartedButton.layer.cornerRadius = 12
+        subtitleLabel?.text = "Track real-time market data and\ndiscover high-potential stocks\ninstantly."
+        subtitleLabel?.font = .systemFont(ofSize: 16, weight: .regular)
+        subtitleLabel?.textColor = Constants.UI.Colors.textSecondary
+        subtitleLabel?.numberOfLines = 0
+        subtitleLabel?.textAlignment = .center
         
-        if let iconImageView = iconImageView {
-            iconImageView.image = UIImage(systemName: "chart.line.uptrend.xyaxis")
-            iconImageView.tintColor = Constants.UI.Colors.primary
-        }
+        getStartedButton?.setTitle("Get Started", for: .normal)
+        getStartedButton?.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
+        getStartedButton?.backgroundColor = Constants.UI.Colors.primary
+        getStartedButton?.setTitleColor(Constants.UI.Colors.backgroundDark, for: .normal)
+        getStartedButton?.layer.cornerRadius = 12
     }
     
-    @IBAction func getStartedTapped(_ sender: UIButton) {
+    @IBAction func getStartedTapped(_ sender: Any) {
         UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.hasSeenOnboarding)
         
         guard let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate else {
             return
-        }
+    }
         
         sceneDelegate.switchToMainFlow()
     }
