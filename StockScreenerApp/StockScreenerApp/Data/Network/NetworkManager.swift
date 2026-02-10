@@ -50,11 +50,24 @@ final class NetworkManager {
                 throw NetworkError.noData
             }
             
+            if let apiError = try? JSONDecoder().decode(AlphaVantageErrorResponse.self, from: data) {
+                if apiError.information?.lowercased().contains("invalid api key") == true
+                    || apiError.information?.lowercased().contains("invalid api call") == true {
+                    throw NetworkError.unauthorized
+                }
+                if apiError.information?.contains("rate limit") == true || apiError.information?.contains("25 requests") == true
+                    || apiError.note?.contains("rate") == true || apiError.note?.contains("frequency") == true {
+                    throw NetworkError.rateLimitExceeded
+                }
+                if let message = apiError.errorMessage ?? apiError.information ?? apiError.note {
+                    throw NetworkError.apiError(message: message)
+                }
+            }
+            
             do {
                 let decoded = try decoder.decode(T.self, from: data)
                 return decoded
             } catch {
-                print("Decoding error: \(error)")
                 throw NetworkError.decodingError
             }
             

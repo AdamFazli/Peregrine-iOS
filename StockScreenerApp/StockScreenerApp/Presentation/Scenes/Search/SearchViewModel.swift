@@ -67,6 +67,10 @@ class SearchViewModel: ObservableObject {
                 errorMessage = "Failed to process server response"
             case .serverError(let code):
                 errorMessage = "Server error (Code: \(code))"
+            case .apiError(let message):
+                errorMessage = message
+            case .unauthorized:
+                errorMessage = "Invalid API key"
             default:
                 errorMessage = error.localizedDescription
             }

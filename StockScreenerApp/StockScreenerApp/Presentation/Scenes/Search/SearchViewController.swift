@@ -188,7 +188,8 @@ extension SearchViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let stock = viewModel.results[indexPath.row]
-        print("Selected: \(stock.symbol) - \(stock.name)")
+        let detailVC = StockDetailViewController(symbol: stock.symbol)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
 

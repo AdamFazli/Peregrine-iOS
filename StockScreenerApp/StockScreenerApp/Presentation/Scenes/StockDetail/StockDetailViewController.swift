@@ -1,0 +1,319 @@
+//
+//  StockDetailViewController.swift
+//  StockScreenerApp
+//
+//  Created on 2/11/26.
+//
+
+import UIKit
+import Combine
+
+class StockDetailViewController: UIViewController {
+    
+    private var viewModel: StockDetailViewModel!
+    private var cancellables = Set<AnyCancellable>()
+    
+    private let scrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        return scrollView
+    }()
+    
+    private let contentView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let companyLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 14, weight: .regular)
+        label.textColor = Constants.UI.Colors.textSecondary
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let priceLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 48, weight: .bold)
+        label.textColor = .white
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let changeLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 16, weight: .semibold)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    private let chartView: SimpleLineChartView = {
+        let view = SimpleLineChartView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let statsGridView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 12
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        return stackView
+    }()
+    
+    private let loadingIndicator: UIActivityIndicatorView = {
+        let indicator = UIActivityIndicatorView(style: .large)
+        indicator.color = Constants.UI.Colors.primary
+        indicator.hidesWhenStopped = true
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        return indicator
+    }()
+    
+    init(symbol: String) {
+        super.init(nibName: nil, bundle: nil)
+        self.viewModel = StockDetailViewModel(symbol: symbol)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        bindViewModel()
+        
+        Task {
+            await viewModel.fetchData()
+        }
+    }
+    
+    private func setupUI() {
+        title = viewModel.symbol
+        view.backgroundColor = Constants.UI.Colors.backgroundDark
+        
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        
+        contentView.addSubview(companyLabel)
+        contentView.addSubview(priceLabel)
+        contentView.addSubview(changeLabel)
+        contentView.addSubview(chartView)
+        contentView.addSubview(statsGridView)
+        view.addSubview(loadingIndicator)
+        
+        NSLayoutConstraint.activate([
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            
+            companyLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
+            companyLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
+            priceLabel.topAnchor.constraint(equalTo: companyLabel.bottomAnchor, constant: 8),
+            priceLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
+            changeLabel.topAnchor.constraint(equalTo: priceLabel.bottomAnchor, constant: 8),
+            changeLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            
+            chartView.topAnchor.constraint(equalTo: changeLabel.bottomAnchor, constant: 24),
+            chartView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            chartView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            chartView.heightAnchor.constraint(equalToConstant: 200),
+            
+            statsGridView.topAnchor.constraint(equalTo: chartView.bottomAnchor, constant: 24),
+            statsGridView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            statsGridView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            statsGridView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
+            
+            loadingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loadingIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+    
+    private func bindViewModel() {
+        viewModel.$isLoading
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoading in
+                if isLoading {
+                    self?.loadingIndicator.startAnimating()
+                } else {
+                    self?.loadingIndicator.stopAnimating()
+                }
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$stockDetail
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .sink { [weak self] detail in
+                self?.updateUI(with: detail)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$stockHistory
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .sink { [weak self] history in
+                self?.updateChart(with: history)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$errorMessage
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .sink { [weak self] error in
+                self?.showError(error)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$retryCountdown
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] countdown in
+                if countdown > 0 {
+                    self?.updateErrorWithCountdown(countdown)
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func updateUI(with detail: StockDetail) {
+        companyLabel.text = detail.symbol
+        priceLabel.text = detail.formattedPrice
+        
+        let changeText = "\(detail.formattedChange) (\(detail.formattedChangePercent))"
+        changeLabel.text = changeText
+        changeLabel.textColor = detail.isPositive ? Constants.UI.Colors.primary : UIColor(hex: "#ff4444")
+        
+        setupStatsGrid(with: detail)
+    }
+    
+    private func updateChart(with history: StockHistory) {
+        let prices = history.prices
+        let color = history.trend == .up ? Constants.UI.Colors.primary : UIColor(hex: "#ff4444")
+        chartView.setData(prices, color: color)
+    }
+    
+    private func setupStatsGrid(with detail: StockDetail) {
+        statsGridView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "Key Statistics"
+        titleLabel.font = .systemFont(ofSize: 20, weight: .bold)
+        titleLabel.textColor = .white
+        statsGridView.addArrangedSubview(titleLabel)
+        
+        let row1 = createStatsRow(
+            stat1: ("HIGH", String(format: "$%.2f", detail.high)),
+            stat2: ("LOW", String(format: "$%.2f", detail.low))
+        )
+        statsGridView.addArrangedSubview(row1)
+        
+        let row2 = createStatsRow(
+            stat1: ("OPEN", String(format: "$%.2f", detail.open)),
+            stat2: ("PREV CLOSE", String(format: "$%.2f", detail.previousClose))
+        )
+        statsGridView.addArrangedSubview(row2)
+        
+        let row3 = createStatsRow(
+            stat1: ("VOLUME", formatVolume(detail.volume)),
+            stat2: ("", "")
+        )
+        statsGridView.addArrangedSubview(row3)
+    }
+    
+    private func createStatsRow(stat1: (String, String), stat2: (String, String)) -> UIView {
+        let rowStack = UIStackView()
+        rowStack.axis = .horizontal
+        rowStack.distribution = .fillEqually
+        rowStack.spacing = 12
+        
+        let card1 = createStatCard(title: stat1.0, value: stat1.1)
+        rowStack.addArrangedSubview(card1)
+        
+        if !stat2.0.isEmpty {
+            let card2 = createStatCard(title: stat2.0, value: stat2.1)
+            rowStack.addArrangedSubview(card2)
+        }
+        
+        return rowStack
+    }
+    
+    private func createStatCard(title: String, value: String) -> UIView {
+        let container = UIView()
+        container.backgroundColor = UIColor(white: 1.0, alpha: 0.05)
+        container.layer.cornerRadius = 12
+        
+        let titleLabel = UILabel()
+        titleLabel.text = title
+        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        titleLabel.textColor = Constants.UI.Colors.textSecondary
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        let valueLabel = UILabel()
+        valueLabel.text = value
+        valueLabel.font = .systemFont(ofSize: 18, weight: .bold)
+        valueLabel.textColor = .white
+        valueLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        container.addSubview(titleLabel)
+        container.addSubview(valueLabel)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            
+            valueLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            valueLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            valueLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
+        ])
+        
+        return container
+    }
+    
+    private func formatVolume(_ volume: String) -> String {
+        guard let volumeInt = Int(volume) else { return volume }
+        let billion = 1_000_000_000
+        let million = 1_000_000
+        
+        if volumeInt >= billion {
+            return String(format: "%.2fB", Double(volumeInt) / Double(billion))
+        } else if volumeInt >= million {
+            return String(format: "%.2fM", Double(volumeInt) / Double(million))
+        } else {
+            return volume
+        }
+    }
+    
+    private var currentAlert: UIAlertController?
+    
+    private func showError(_ message: String) {
+        currentAlert?.dismiss(animated: false)
+        
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.currentAlert = nil
+        })
+        currentAlert = alert
+        present(alert, animated: true)
+    }
+    
+    private func updateErrorWithCountdown(_ countdown: Int) {
+        guard let alert = currentAlert else { return }
+        
+        let baseMessage = "Rate limit exceeded. Please wait"
+        alert.message = "\(baseMessage) \(countdown) seconds."
+    }
+}
+
