@@ -12,8 +12,7 @@ actor Throttler {
     private let maxRequests: Int
     private let timeWindow: TimeInterval
     
-    init(maxRequests: Int = APIConstants.requestsPerMinute, 
-         timeWindow: TimeInterval = APIConstants.timeWindow) {
+    init(maxRequests: Int = 5, timeWindow: TimeInterval = 60) {
         self.maxRequests = maxRequests
         self.timeWindow = timeWindow
     }
