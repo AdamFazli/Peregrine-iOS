@@ -33,6 +33,8 @@ class DashboardView: UIView {
         label.text = "Discover"
         label.font = .systemFont(ofSize: 34, weight: .bold)
         label.textColor = .white
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.8
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -71,12 +73,15 @@ class DashboardView: UIView {
         return label
     }()
     
-    private let recentlyViewedCollection: UICollectionView = {
+    private lazy var recentlyViewedCollection: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumInteritemSpacing = 12
         layout.minimumLineSpacing = 12
-        layout.itemSize = CGSize(width: 160, height: 80)
+        
+        let screenWidth = UIScreen.main.bounds.width
+        let cellWidth = min(160, screenWidth * 0.4)
+        layout.itemSize = CGSize(width: cellWidth, height: 80)
         
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collection.backgroundColor = .clear
@@ -143,11 +148,12 @@ class DashboardView: UIView {
             
             headerLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             headerLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            headerLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            headerLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
             
             marketStatusContainer.topAnchor.constraint(equalTo: headerLabel.bottomAnchor, constant: 20),
             marketStatusContainer.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             marketStatusContainer.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            marketStatusContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 600),
             
             marketStatusLabel.topAnchor.constraint(equalTo: marketStatusContainer.topAnchor, constant: 16),
             marketStatusLabel.leadingAnchor.constraint(equalTo: marketStatusContainer.leadingAnchor, constant: 16),
@@ -160,13 +166,13 @@ class DashboardView: UIView {
             
             recentlyViewedLabel.topAnchor.constraint(equalTo: marketStatusContainer.bottomAnchor, constant: 32),
             recentlyViewedLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            recentlyViewedLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            recentlyViewedLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -16),
             
             recentlyViewedCollection.topAnchor.constraint(equalTo: recentlyViewedLabel.bottomAnchor, constant: 12),
             recentlyViewedCollection.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             recentlyViewedCollection.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            recentlyViewedCollection.heightAnchor.constraint(equalToConstant: 80),
-            recentlyViewedCollection.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
+            recentlyViewedCollection.heightAnchor.constraint(equalToConstant: 90),
+            recentlyViewedCollection.bottomAnchor.constraint(greaterThanOrEqualTo: contentView.bottomAnchor, constant: -20),
             
             emptyRecentLabel.topAnchor.constraint(equalTo: recentlyViewedLabel.bottomAnchor, constant: 20),
             emptyRecentLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),

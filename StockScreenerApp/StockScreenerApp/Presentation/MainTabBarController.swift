@@ -72,7 +72,14 @@ class MainTabBarController: UITabBarController {
             image: UIImage(systemName: "star")
         )
         
-        viewControllers = [searchNav, watchlistNav]
+        let settingsVC = SettingsViewController()
+        let settingsNav = createNavigationController(
+            rootViewController: settingsVC,
+            title: "Settings",
+            image: UIImage(systemName: "gearshape")
+        )
+        
+        viewControllers = [searchNav, watchlistNav, settingsNav]
     }
     
     private func createNavigationController(

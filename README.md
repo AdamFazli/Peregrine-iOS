@@ -5,10 +5,12 @@ A modern iOS stock screening application featuring real-time market data, watchl
 ## Features
 
 ### Core Features
+- ✅ **Discover Dashboard** - Smart dashboard with recently viewed stocks and market status
 - ✅ **Stock Search** - Search stocks by symbol with debounced search
 - ✅ **Stock Details** - Real-time price, market data, and key statistics
 - ✅ **Watchlist** - Save and manage favorite stocks with local persistence
 - ✅ **Interactive Charts** - Beautiful line charts with time period filters (1D, 1W, 1M, 3M, 1Y, ALL)
+- ✅ **Settings** - App preferences, cache management, and information
 - ✅ **Welcome/Onboarding** - Custom onboarding screen with branded UI
 
 ### UI/UX Enhancements
