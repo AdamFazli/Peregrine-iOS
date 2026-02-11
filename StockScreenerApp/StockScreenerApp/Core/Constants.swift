@@ -14,7 +14,10 @@ enum Constants {
     enum UI {
         enum Colors {
             static let primary = UIColor(hex: "#13ec80")
+            static let backgroundLight = UIColor(hex: "#f6f8f7")
             static let backgroundDark = UIColor(hex: "#102219")
+            static let cardDark = UIColor(hex: "#162b21")
+            static let inputDark = UIColor(hex: "#1c3328")
             static let textSecondary = UIColor(hex: "#92c9ad")
         }
     }

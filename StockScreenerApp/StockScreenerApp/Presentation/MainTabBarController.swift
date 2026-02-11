@@ -58,6 +58,13 @@ class MainTabBarController: UITabBarController {
     }
     
     private func setupViewControllers() {
+        let homeVC = HomeViewController()
+        let homeNav = createNavigationController(
+            rootViewController: homeVC,
+            title: "Home",
+            image: UIImage(systemName: "house.fill")
+        )
+        
         let searchVC = SearchViewController()
         let searchNav = createNavigationController(
             rootViewController: searchVC,
@@ -79,7 +86,7 @@ class MainTabBarController: UITabBarController {
             image: UIImage(systemName: "gearshape")
         )
         
-        viewControllers = [searchNav, watchlistNav, settingsNav]
+        viewControllers = [homeNav, searchNav, watchlistNav, settingsNav]
     }
     
     private func createNavigationController(
