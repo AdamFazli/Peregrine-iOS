@@ -12,6 +12,9 @@ class StockDetailViewController: UIViewController {
     
     private var viewModel: StockDetailViewModel!
     private var cancellables = Set<AnyCancellable>()
+    private let repository = WatchlistRepository.shared
+    private var isInWatchlist = false
+    private var currentStock: Stock?
     
     private let scrollView: UIScrollView = {
         let scrollView = UIScrollView()
@@ -73,9 +76,10 @@ class StockDetailViewController: UIViewController {
         return indicator
     }()
     
-    init(symbol: String) {
+    init(symbol: String, stock: Stock? = nil) {
         super.init(nibName: nil, bundle: nil)
         self.viewModel = StockDetailViewModel(symbol: symbol)
+        self.currentStock = stock
     }
     
     required init?(coder: NSCoder) {
@@ -85,7 +89,9 @@ class StockDetailViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setupWatchlistButton()
         bindViewModel()
+        checkWatchlistStatus()
         
         Task {
             await viewModel.fetchData()
@@ -314,6 +320,55 @@ class StockDetailViewController: UIViewController {
         
         let baseMessage = "Rate limit exceeded. Please wait"
         alert.message = "\(baseMessage) \(countdown) seconds."
+    }
+    
+    private func setupWatchlistButton() {
+        let starButton = UIBarButtonItem(
+            image: UIImage(systemName: "star"),
+            style: .plain,
+            target: self,
+            action: #selector(toggleWatchlist)
+        )
+        navigationItem.rightBarButtonItem = starButton
+    }
+    
+    private func checkWatchlistStatus() {
+        do {
+            isInWatchlist = try repository.contains(symbol: viewModel.symbol)
+            updateWatchlistButton()
+        } catch {
+            print("Error checking watchlist status: \(error)")
+        }
+    }
+    
+    private func updateWatchlistButton() {
+        let imageName = isInWatchlist ? "star.fill" : "star"
+        navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
+        navigationItem.rightBarButtonItem?.tintColor = isInWatchlist ? Constants.UI.Colors.primary : .white
+    }
+    
+    @objc private func toggleWatchlist() {
+        guard let stock = currentStock else {
+            showError("Stock information not available")
+            return
+        }
+        
+        do {
+            if isInWatchlist {
+                try repository.remove(stock: stock)
+                isInWatchlist = false
+            } else {
+                try repository.save(stock: stock)
+                isInWatchlist = true
+            }
+            updateWatchlistButton()
+            
+            let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+            feedbackGenerator.impactOccurred()
+            
+        } catch {
+            showError("Failed to update watchlist: \(error.localizedDescription)")
+        }
     }
 }
 

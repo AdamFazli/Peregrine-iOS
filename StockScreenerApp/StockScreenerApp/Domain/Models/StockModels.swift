@@ -9,13 +9,20 @@ import Foundation
 
 // MARK: - Stock (Search Results)
 
-struct Stock: Decodable, Identifiable {
+struct Stock: Codable, Identifiable, Equatable {
     let symbol: String
     let name: String
     let type: String
     let region: String
     
     var id: String { symbol }
+    
+    init(symbol: String, name: String, type: String, region: String) {
+        self.symbol = symbol
+        self.name = name
+        self.type = type
+        self.region = region
+    }
     
     var displayType: String {
         switch type.lowercased() {
