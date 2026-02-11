@@ -131,13 +131,70 @@ struct QuoteResponse: Decodable {
 
 // MARK: - StockHistory (Time Series Data)
 
+enum TimePeriod: String, CaseIterable {
+    case day = "1D"
+    case week = "1W"
+    case month = "1M"
+    case threeMonths = "3M"
+    case year = "1Y"
+    case all = "ALL"
+}
+
 struct StockHistory: Decodable {
     let metaData: MetaData
-    let timeSeries: [String: DailyData]
+    let timeSeries: [String: TimeSeriesData]
     
     var prices: [Double] {
         let sortedDates = timeSeries.keys.sorted()
         return sortedDates.compactMap { timeSeries[$0]?.close }
+    }
+    
+    func pricesForPeriod(_ period: TimePeriod) -> [Double] {
+        let sortedDates = timeSeries.keys.sorted()
+        let now = Date()
+        
+        let filteredDates: [String]
+        switch period {
+        case .day:
+            filteredDates = sortedDates.filter { dateString in
+                guard let date = parseDate(dateString) else { return false }
+                return now.timeIntervalSince(date) <= 86400
+            }
+        case .week:
+            filteredDates = sortedDates.filter { dateString in
+                guard let date = parseDate(dateString) else { return false }
+                return now.timeIntervalSince(date) <= 604800
+            }
+        case .month:
+            filteredDates = sortedDates.filter { dateString in
+                guard let date = parseDate(dateString) else { return false }
+                return now.timeIntervalSince(date) <= 2592000
+            }
+        case .threeMonths:
+            filteredDates = sortedDates.filter { dateString in
+                guard let date = parseDate(dateString) else { return false }
+                return now.timeIntervalSince(date) <= 7776000
+            }
+        case .year:
+            filteredDates = sortedDates.filter { dateString in
+                guard let date = parseDate(dateString) else { return false }
+                return now.timeIntervalSince(date) <= 31536000
+            }
+        case .all:
+            filteredDates = sortedDates
+        }
+        
+        return filteredDates.compactMap { timeSeries[$0]?.close }
+    }
+    
+    private func parseDate(_ dateString: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        if let date = formatter.date(from: dateString) {
+            return date
+        }
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: dateString)
     }
     
     var trend: PriceTrend {
@@ -159,7 +216,7 @@ struct StockHistory: Decodable {
         }
     }
     
-    struct DailyData: Decodable {
+    struct TimeSeriesData: Decodable {
         let open: Double
         let high: Double
         let low: Double
@@ -193,8 +250,25 @@ struct StockHistory: Decodable {
         }
     }
     
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        metaData = try container.decode(MetaData.self, forKey: .metaData)
+        
+        if let monthly = try? container.decode([String: TimeSeriesData].self, forKey: .monthlyTimeSeries) {
+            timeSeries = monthly
+        } else if let daily = try? container.decode([String: TimeSeriesData].self, forKey: .dailyTimeSeries) {
+            timeSeries = daily
+        } else if let intraday = try? container.decode([String: TimeSeriesData].self, forKey: .intradayTimeSeries) {
+            timeSeries = intraday
+        } else {
+            timeSeries = [:]
+        }
+    }
+    
     enum CodingKeys: String, CodingKey {
         case metaData = "Meta Data"
-        case timeSeries = "Monthly Time Series"
+        case monthlyTimeSeries = "Monthly Time Series"
+        case dailyTimeSeries = "Time Series (Daily)"
+        case intradayTimeSeries = "Time Series (60min)"
     }
 }
