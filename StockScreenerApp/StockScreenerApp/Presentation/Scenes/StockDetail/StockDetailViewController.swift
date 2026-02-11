@@ -39,6 +39,8 @@ class StockDetailViewController: UIViewController {
         label.font = .systemFont(ofSize: 14, weight: .regular)
         label.textColor = Constants.UI.Colors.textSecondary
         label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.8
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -48,6 +50,8 @@ class StockDetailViewController: UIViewController {
         label.font = .systemFont(ofSize: 48, weight: .bold)
         label.textColor = .white
         label.textAlignment = .center
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.7
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -140,10 +144,12 @@ class StockDetailViewController: UIViewController {
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.trailingAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
+            contentView.widthAnchor.constraint(lessThanOrEqualToConstant: 600),
+            contentView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
             
             companyLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
             companyLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -162,7 +168,7 @@ class StockDetailViewController: UIViewController {
             chartView.topAnchor.constraint(equalTo: periodSelector.bottomAnchor, constant: 16),
             chartView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             chartView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            chartView.heightAnchor.constraint(equalToConstant: 200),
+            chartView.heightAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.5),
             
             statsGridView.topAnchor.constraint(equalTo: chartView.bottomAnchor, constant: 24),
             statsGridView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -333,12 +339,17 @@ class StockDetailViewController: UIViewController {
         titleLabel.text = title
         titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
         titleLabel.textColor = Constants.UI.Colors.textSecondary
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.minimumScaleFactor = 0.8
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         let valueLabel = UILabel()
         valueLabel.text = value
         valueLabel.font = .systemFont(ofSize: 18, weight: .bold)
         valueLabel.textColor = .white
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = 0.7
+        valueLabel.numberOfLines = 1
         valueLabel.translatesAutoresizingMaskIntoConstraints = false
         
         container.addSubview(titleLabel)
@@ -347,9 +358,11 @@ class StockDetailViewController: UIViewController {
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
             
             valueLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             valueLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
+            valueLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
             valueLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
         ])
         

@@ -56,6 +56,16 @@ class WatchlistRepository {
         return stocks.contains { $0.symbol == symbol }
     }
     
+    func clearAll() throws {
+        guard let fileURL = fileURL else {
+            throw WatchlistError.fileURLNotFound
+        }
+        
+        if fileManager.fileExists(atPath: fileURL.path) {
+            try fileManager.removeItem(at: fileURL)
+        }
+    }
+    
     private func saveStocks(_ stocks: [Stock]) throws {
         guard let fileURL = fileURL else {
             throw WatchlistError.fileURLNotFound
