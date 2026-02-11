@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Stock (Search Results)
 
-struct Stock: Decodable, Identifiable {
+struct Stock: Codable, Identifiable {
     let symbol: String
     let name: String
     let type: String
