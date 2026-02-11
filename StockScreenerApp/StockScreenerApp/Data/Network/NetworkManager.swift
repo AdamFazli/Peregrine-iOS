@@ -7,14 +7,14 @@
 
 import Foundation
 
-final class NetworkManager {
+class NetworkManager {
     static let shared = NetworkManager()
     
     private let session: URLSession
     private let throttler = Throttler()
     private let decoder: JSONDecoder
     
-    private init() {
+    init() {
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 60
