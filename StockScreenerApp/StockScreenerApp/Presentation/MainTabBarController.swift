@@ -9,32 +9,47 @@ import UIKit
 
 class MainTabBarController: UITabBarController {
     
+    private let topBorderLayer = CALayer()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabBar()
         setupViewControllers()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        topBorderLayer.frame = CGRect(x: 0, y: 0, width: tabBar.bounds.width, height: 0.5)
+    }
+    
     private func setupTabBar() {
         tabBar.backgroundColor = Constants.UI.Colors.backgroundDark
         tabBar.barTintColor = Constants.UI.Colors.backgroundDark
         tabBar.tintColor = Constants.UI.Colors.primary
-        tabBar.unselectedItemTintColor = UIColor(white: 0.5, alpha: 1.0)
+        tabBar.unselectedItemTintColor = UIColor(white: 0.6, alpha: 1.0)
         tabBar.isTranslucent = false
+        
+        topBorderLayer.backgroundColor = UIColor(white: 1.0, alpha: 0.1).cgColor
+        tabBar.layer.addSublayer(topBorderLayer)
         
         if #available(iOS 15.0, *) {
             let appearance = UITabBarAppearance()
             appearance.configureWithOpaqueBackground()
             appearance.backgroundColor = Constants.UI.Colors.backgroundDark
             
-            appearance.stackedLayoutAppearance.normal.iconColor = UIColor(white: 0.5, alpha: 1.0)
+            appearance.shadowColor = UIColor.black.withAlphaComponent(0.3)
+            appearance.shadowImage = UIImage()
+            
+            appearance.stackedLayoutAppearance.normal.iconColor = UIColor(white: 0.6, alpha: 1.0)
             appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
-                .foregroundColor: UIColor(white: 0.5, alpha: 1.0)
+                .foregroundColor: UIColor(white: 0.6, alpha: 1.0),
+                .font: UIFont.systemFont(ofSize: 11, weight: .medium)
             ]
             
             appearance.stackedLayoutAppearance.selected.iconColor = Constants.UI.Colors.primary
             appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
-                .foregroundColor: Constants.UI.Colors.primary
+                .foregroundColor: Constants.UI.Colors.primary,
+                .font: UIFont.systemFont(ofSize: 11, weight: .semibold)
             ]
             
             tabBar.standardAppearance = appearance

@@ -38,15 +38,17 @@ class StockCell: UITableViewCell {
     private let iconView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor(white: 1.0, alpha: 0.1)
-        view.layer.cornerRadius = 8
+        view.layer.cornerRadius = 12
+        view.layer.borderWidth = 1
+        view.layer.borderColor = UIColor(white: 1.0, alpha: 0.15).cgColor
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private let iconLabel: UILabel = {
         let label = UILabel()
-        label.font = .systemFont(ofSize: 20, weight: .bold)
-        label.textColor = Constants.UI.Colors.primary
+        label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.textColor = .white
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -74,8 +76,8 @@ class StockCell: UITableViewCell {
         NSLayoutConstraint.activate([
             iconView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             iconView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            iconView.widthAnchor.constraint(equalToConstant: 44),
-            iconView.heightAnchor.constraint(equalToConstant: 44),
+            iconView.widthAnchor.constraint(equalToConstant: 48),
+            iconView.heightAnchor.constraint(equalToConstant: 48),
             
             iconLabel.centerXAnchor.constraint(equalTo: iconView.centerXAnchor),
             iconLabel.centerYAnchor.constraint(equalTo: iconView.centerYAnchor),
@@ -97,6 +99,27 @@ class StockCell: UITableViewCell {
         symbolLabel.text = stock.symbol
         nameLabel.text = stock.name
         typeLabel.text = stock.displayType
+        
+        let color = colorForSymbol(stock.symbol)
+        iconView.backgroundColor = color.withAlphaComponent(0.2)
+        iconView.layer.borderColor = color.withAlphaComponent(0.3).cgColor
         iconLabel.text = String(stock.symbol.prefix(2))
+        iconLabel.textColor = color
+    }
+    
+    private func colorForSymbol(_ symbol: String) -> UIColor {
+        let colors: [UIColor] = [
+            Constants.UI.Colors.primary,
+            UIColor(hex: "#4A9EFF"),
+            UIColor(hex: "#FF6B6B"),
+            UIColor(hex: "#FFD93D"),
+            UIColor(hex: "#6BCF7F"),
+            UIColor(hex: "#A78BFA"),
+            UIColor(hex: "#FF9CEE"),
+            UIColor(hex: "#54D9FF")
+        ]
+        
+        let hash = symbol.hashValue
+        return colors[abs(hash) % colors.count]
     }
 }
