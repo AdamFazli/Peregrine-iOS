@@ -16,9 +16,15 @@ class StockDetailViewController: UIViewController {
     private var isInWatchlist = false
     private var currentStock: Stock?
     
-    private let scrollView: UIScrollView = {
+    private lazy var scrollView: UIScrollView = {
         let scrollView = UIScrollView()
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = Constants.UI.Colors.primary
+        refreshControl.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        scrollView.refreshControl = refreshControl
+        
         return scrollView
     }()
     
@@ -52,6 +58,18 @@ class StockDetailViewController: UIViewController {
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
+    }()
+    
+    private let periodSelector: UISegmentedControl = {
+        let periods = TimePeriod.allCases.map { $0.rawValue }
+        let segmented = UISegmentedControl(items: periods)
+        segmented.selectedSegmentIndex = 2
+        segmented.backgroundColor = UIColor(white: 1.0, alpha: 0.05)
+        segmented.selectedSegmentTintColor = Constants.UI.Colors.primary
+        segmented.setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
+        segmented.setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
+        segmented.translatesAutoresizingMaskIntoConstraints = false
+        return segmented
     }()
     
     private let chartView: SimpleLineChartView = {
@@ -108,9 +126,12 @@ class StockDetailViewController: UIViewController {
         contentView.addSubview(companyLabel)
         contentView.addSubview(priceLabel)
         contentView.addSubview(changeLabel)
+        contentView.addSubview(periodSelector)
         contentView.addSubview(chartView)
         contentView.addSubview(statsGridView)
         view.addSubview(loadingIndicator)
+        
+        periodSelector.addTarget(self, action: #selector(periodChanged), for: .valueChanged)
         
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -133,7 +154,12 @@ class StockDetailViewController: UIViewController {
             changeLabel.topAnchor.constraint(equalTo: priceLabel.bottomAnchor, constant: 8),
             changeLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             
-            chartView.topAnchor.constraint(equalTo: changeLabel.bottomAnchor, constant: 24),
+            periodSelector.topAnchor.constraint(equalTo: changeLabel.bottomAnchor, constant: 20),
+            periodSelector.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            periodSelector.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            periodSelector.heightAnchor.constraint(equalToConstant: 32),
+            
+            chartView.topAnchor.constraint(equalTo: periodSelector.bottomAnchor, constant: 16),
             chartView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             chartView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             chartView.heightAnchor.constraint(equalToConstant: 200),
@@ -206,9 +232,31 @@ class StockDetailViewController: UIViewController {
     }
     
     private func updateChart(with history: StockHistory) {
-        let prices = history.prices
-        let color = history.trend == .up ? Constants.UI.Colors.primary : UIColor(hex: "#ff4444")
-        chartView.setData(prices, color: color)
+        let selectedPeriod = TimePeriod.allCases[periodSelector.selectedSegmentIndex]
+        let prices = history.pricesForPeriod(selectedPeriod)
+        
+        guard !prices.isEmpty else {
+            chartView.setData(history.prices, color: Constants.UI.Colors.primary, animated: true)
+            return
+        }
+        
+        let first = prices.first ?? 0
+        let last = prices.last ?? 0
+        let color = last > first ? Constants.UI.Colors.primary : UIColor(hex: "#ff4444")
+        
+        chartView.setData(prices, color: color, animated: true)
+    }
+    
+    @objc private func periodChanged() {
+        guard let history = viewModel.stockHistory else { return }
+        updateChart(with: history)
+    }
+    
+    @objc private func refreshData() {
+        Task {
+            await viewModel.fetchData()
+            scrollView.refreshControl?.endRefreshing()
+        }
     }
     
     private func setupStatsGrid(with detail: StockDetail) {
@@ -237,6 +285,26 @@ class StockDetailViewController: UIViewController {
             stat2: ("", "")
         )
         statsGridView.addArrangedSubview(row3)
+        
+        animateStatsGrid()
+    }
+    
+    private func animateStatsGrid() {
+        statsGridView.arrangedSubviews.enumerated().forEach { index, view in
+            view.alpha = 0
+            view.transform = CGAffineTransform(translationX: 0, y: 15)
+            
+            UIView.animate(
+                withDuration: 0.4,
+                delay: 0.1 + Double(index) * 0.08,
+                usingSpringWithDamping: 0.8,
+                initialSpringVelocity: 0.5,
+                options: [.curveEaseOut]
+            ) {
+                view.alpha = 1
+                view.transform = .identity
+            }
+        }
     }
     
     private func createStatsRow(stat1: (String, String), stat2: (String, String)) -> UIView {
@@ -341,10 +409,26 @@ class StockDetailViewController: UIViewController {
         }
     }
     
-    private func updateWatchlistButton() {
+    private func updateWatchlistButton(animated: Bool = false) {
         let imageName = isInWatchlist ? "star.fill" : "star"
         navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
         navigationItem.rightBarButtonItem?.tintColor = isInWatchlist ? Constants.UI.Colors.primary : .white
+        
+        if animated, let barButtonView = navigationItem.rightBarButtonItem?.value(forKey: "view") as? UIView {
+            UIView.animate(
+                withDuration: 0.3,
+                delay: 0,
+                usingSpringWithDamping: 0.5,
+                initialSpringVelocity: 0.8,
+                options: [.curveEaseInOut]
+            ) {
+                barButtonView.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+            } completion: { _ in
+                UIView.animate(withDuration: 0.2) {
+                    barButtonView.transform = .identity
+                }
+            }
+        }
     }
     
     @objc private func toggleWatchlist() {
@@ -361,7 +445,7 @@ class StockDetailViewController: UIViewController {
                 try repository.save(stock: stock)
                 isInWatchlist = true
             }
-            updateWatchlistButton()
+            updateWatchlistButton(animated: true)
             
             let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
             feedbackGenerator.impactOccurred()
