@@ -51,7 +51,8 @@ extension Endpoint {
 enum StockEndpoint: Endpoint {
     case quote(symbol: String)
     case search(keywords: String)
-    case timeSeries(symbol: String, interval: String)
+    case intradayTimeSeries(symbol: String)
+    case dailyTimeSeries(symbol: String)
     case monthlyTimeSeries(symbol: String)
     
     var path: String {
@@ -72,11 +73,19 @@ enum StockEndpoint: Endpoint {
                 URLQueryItem(name: "keywords", value: keywords)
             ]
             
-        case .timeSeries(let symbol, let interval):
+        case .intradayTimeSeries(let symbol):
             return [
                 URLQueryItem(name: "function", value: "TIME_SERIES_INTRADAY"),
                 URLQueryItem(name: "symbol", value: symbol),
-                URLQueryItem(name: "interval", value: interval)
+                URLQueryItem(name: "interval", value: "60min"),
+                URLQueryItem(name: "outputsize", value: "full")
+            ]
+            
+        case .dailyTimeSeries(let symbol):
+            return [
+                URLQueryItem(name: "function", value: "TIME_SERIES_DAILY"),
+                URLQueryItem(name: "symbol", value: symbol),
+                URLQueryItem(name: "outputsize", value: "full")
             ]
             
         case .monthlyTimeSeries(let symbol):

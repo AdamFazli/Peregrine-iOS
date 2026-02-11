@@ -36,25 +36,20 @@ final class UIColorExtensionTests: XCTestCase {
     func testInvalidHexReturnsBlack() {
         let invalidColor = UIColor(hex: "invalid")
         
-        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        invalidColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-        
-        XCTAssertEqual(red, 0.0, accuracy: 0.01)
-        XCTAssertEqual(green, 0.0, accuracy: 0.01)
-        XCTAssertEqual(blue, 0.0, accuracy: 0.01)
-        XCTAssertEqual(alpha, 1.0, accuracy: 0.01)
+        XCTAssertTrue(isColorBlack(invalidColor), "Invalid hex should return black")
     }
     
     func testShortHexFormat() {
         let color = UIColor(hex: "#000")
         
+        XCTAssertTrue(isColorBlack(color), "Short hex #000 should return black")
+    }
+    
+    private func isColorBlack(_ color: UIColor) -> Bool {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
         color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         
-        XCTAssertEqual(red, 0.0, accuracy: 0.01)
-        XCTAssertEqual(green, 0.0, accuracy: 0.01)
-        XCTAssertEqual(blue, 0.0, accuracy: 0.01)
-        XCTAssertEqual(alpha, 1.0, accuracy: 0.01)
+        return abs(red) < 0.01 && abs(green) < 0.01 && abs(blue) < 0.01 && abs(alpha - 1.0) < 0.01
     }
     
     private func areColorsEqual(_ color1: UIColor, _ color2: UIColor) -> Bool {

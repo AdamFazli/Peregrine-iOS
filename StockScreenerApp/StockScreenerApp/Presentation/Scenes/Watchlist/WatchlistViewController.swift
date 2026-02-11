@@ -12,11 +12,17 @@ class WatchlistViewController: UIViewController {
     private var stocks: [Stock] = []
     private let repository = WatchlistRepository.shared
     
-    private let tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = Constants.UI.Colors.backgroundDark
         tableView.separatorStyle = .none
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = Constants.UI.Colors.primary
+        refreshControl.addTarget(self, action: #selector(refreshWatchlist), for: .valueChanged)
+        tableView.refreshControl = refreshControl
+        
         return tableView
     }()
     
@@ -100,6 +106,21 @@ extension WatchlistViewController: UITableViewDataSource {
         
         let stock = stocks[indexPath.row]
         cell.configure(with: stock)
+        
+        cell.alpha = 0
+        cell.transform = CGAffineTransform(translationX: -20, y: 0)
+        
+        UIView.animate(
+            withDuration: 0.35,
+            delay: Double(indexPath.row) * 0.04,
+            usingSpringWithDamping: 0.85,
+            initialSpringVelocity: 0.5,
+            options: [.curveEaseOut]
+        ) {
+            cell.alpha = 1
+            cell.transform = .identity
+        }
+        
         return cell
     }
 }
@@ -120,8 +141,13 @@ extension WatchlistViewController: UITableViewDelegate {
             do {
                 try self.repository.remove(stock: stock)
                 self.stocks.remove(at: indexPath.row)
-                self.tableView.deleteRows(at: [indexPath], with: .fade)
-                self.updateEmptyState()
+                
+                UIView.animate(withDuration: 0.3, animations: {
+                    self.tableView.deleteRows(at: [indexPath], with: .left)
+                }) { _ in
+                    self.updateEmptyState()
+                }
+                
                 completion(true)
             } catch {
                 self.showError("Failed to remove stock")
@@ -131,5 +157,10 @@ extension WatchlistViewController: UITableViewDelegate {
         
         deleteAction.backgroundColor = UIColor(hex: "#ff4444")
         return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+    
+    @objc private func refreshWatchlist() {
+        loadWatchlist()
+        tableView.refreshControl?.endRefreshing()
     }
 }

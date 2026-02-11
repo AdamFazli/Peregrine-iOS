@@ -21,12 +21,18 @@ class SearchViewController: UIViewController {
         return searchBar
     }()
     
-    private let tableView: UITableView = {
+    private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = Constants.UI.Colors.backgroundDark
         tableView.separatorStyle = .none
         tableView.keyboardDismissMode = .onDrag
         tableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = Constants.UI.Colors.primary
+        refreshControl.addTarget(self, action: #selector(refreshSearch), for: .valueChanged)
+        tableView.refreshControl = refreshControl
+        
         return tableView
     }()
     
@@ -175,6 +181,21 @@ extension SearchViewController: UITableViewDataSource {
         
         let stock = viewModel.results[indexPath.row]
         cell.configure(with: stock)
+        
+        cell.alpha = 0
+        cell.transform = CGAffineTransform(translationX: 0, y: 20)
+        
+        UIView.animate(
+            withDuration: 0.4,
+            delay: Double(indexPath.row) * 0.05,
+            usingSpringWithDamping: 0.8,
+            initialSpringVelocity: 0.5,
+            options: [.curveEaseOut]
+        ) {
+            cell.alpha = 1
+            cell.transform = .identity
+        }
+        
         return cell
     }
 }
@@ -190,6 +211,13 @@ extension SearchViewController: UITableViewDelegate {
         let stock = viewModel.results[indexPath.row]
         let detailVC = StockDetailViewController(symbol: stock.symbol, stock: stock)
         navigationController?.pushViewController(detailVC, animated: true)
+    }
+    
+    @objc private func refreshSearch() {
+        if !viewModel.searchText.isEmpty {
+            viewModel.searchText = viewModel.searchText
+        }
+        tableView.refreshControl?.endRefreshing()
     }
 }
 
