@@ -21,6 +21,13 @@ class SearchViewController: UIViewController {
         return searchBar
     }()
     
+    private lazy var dashboardView: DashboardView = {
+        let dashboard = DashboardView()
+        dashboard.translatesAutoresizingMaskIntoConstraints = false
+        dashboard.delegate = self
+        return dashboard
+    }()
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = Constants.UI.Colors.backgroundDark
@@ -38,7 +45,7 @@ class SearchViewController: UIViewController {
     
     private let emptyStateLabel: UILabel = {
         let label = UILabel()
-        label.text = "Start typing to find stocks"
+        label.text = "No results found"
         label.textColor = Constants.UI.Colors.textSecondary
         label.font = .systemFont(ofSize: 16, weight: .regular)
         label.textAlignment = .center
@@ -61,6 +68,12 @@ class SearchViewController: UIViewController {
         setupTableView()
         setupSearchBar()
         bindViewModel()
+        updateViewMode()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        dashboardView.loadRecentStocks()
     }
     
     private func setupUI() {
@@ -68,6 +81,7 @@ class SearchViewController: UIViewController {
         view.backgroundColor = Constants.UI.Colors.backgroundDark
         
         view.addSubview(searchBar)
+        view.addSubview(dashboardView)
         view.addSubview(tableView)
         view.addSubview(emptyStateLabel)
         view.addSubview(loadingIndicator)
@@ -76,6 +90,11 @@ class SearchViewController: UIViewController {
             searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            
+            dashboardView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            dashboardView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            dashboardView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            dashboardView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
             tableView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -146,14 +165,25 @@ class SearchViewController: UIViewController {
     }
     
     private func updateUI(results: [Stock]) {
-        if results.isEmpty && viewModel.searchText.isEmpty {
-            emptyStateLabel.isHidden = false
-            emptyStateLabel.text = "Start typing to find stocks"
-        } else if results.isEmpty && !viewModel.searchText.isEmpty && !viewModel.isLoading {
+        updateViewMode()
+        
+        if results.isEmpty && !viewModel.searchText.isEmpty && !viewModel.isLoading {
             emptyStateLabel.isHidden = false
             emptyStateLabel.text = "No results found for '\(viewModel.searchText)'"
         } else {
             emptyStateLabel.isHidden = true
+        }
+    }
+    
+    private func updateViewMode() {
+        let isSearching = !viewModel.searchText.isEmpty
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            self.dashboardView.alpha = isSearching ? 0 : 1
+            self.tableView.alpha = isSearching ? 1 : 0
+        }) { _ in
+            self.dashboardView.isHidden = isSearching
+            self.tableView.isHidden = !isSearching
         }
     }
     
@@ -226,6 +256,7 @@ extension SearchViewController: UITableViewDelegate {
 extension SearchViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         viewModel.searchText = searchText
+        updateViewMode()
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
@@ -236,5 +267,15 @@ extension SearchViewController: UISearchBarDelegate {
         searchBar.text = ""
         viewModel.clearSearch()
         searchBar.resignFirstResponder()
+        updateViewMode()
+    }
+}
+
+// MARK: - DashboardViewDelegate
+
+extension SearchViewController: DashboardViewDelegate {
+    func dashboardView(_ view: DashboardView, didSelectStock stock: Stock) {
+        let detailVC = StockDetailViewController(symbol: stock.symbol, stock: stock)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }

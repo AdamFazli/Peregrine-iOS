@@ -20,9 +20,13 @@ class StockDetailViewModel: ObservableObject {
     private var retryTimer: Timer?
     let symbol: String
     
-    init(symbol: String, networkManager: NetworkManager? = nil) {
+    init(symbol: String, networkManager: NetworkManager? = nil, stock: Stock? = nil) {
         self.symbol = symbol
         self.networkManager = networkManager ?? NetworkManager.shared
+        
+        if let stock = stock {
+            RecentlyViewedManager.shared.addStock(stock)
+        }
     }
     
     deinit {

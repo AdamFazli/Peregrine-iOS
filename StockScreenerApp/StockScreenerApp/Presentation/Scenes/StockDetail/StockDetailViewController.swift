@@ -96,7 +96,7 @@ class StockDetailViewController: UIViewController {
     
     init(symbol: String, stock: Stock? = nil) {
         super.init(nibName: nil, bundle: nil)
-        self.viewModel = StockDetailViewModel(symbol: symbol)
+        self.viewModel = StockDetailViewModel(symbol: symbol, stock: stock)
         self.currentStock = stock
     }
     
