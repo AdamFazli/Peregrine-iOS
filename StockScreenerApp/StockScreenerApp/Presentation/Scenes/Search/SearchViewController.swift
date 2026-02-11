@@ -39,7 +39,7 @@ class SearchViewController: UIViewController {
     
     private let emptyStateLabel: UILabel = {
         let label = UILabel()
-        label.text = "No results found"
+        label.text = "Search for companies, tickers, or ETFs..."
         label.textColor = Constants.UI.Colors.textSecondary
         label.font = .systemFont(ofSize: 16, weight: .regular)
         label.textAlignment = .center
@@ -62,6 +62,14 @@ class SearchViewController: UIViewController {
         setupTableView()
         setupSearchBar()
         bindViewModel()
+        showInitialEmptyState()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if viewModel.searchText.isEmpty && viewModel.results.isEmpty {
+            searchBar.becomeFirstResponder()
+        }
     }
     
     private func setupUI() {
@@ -147,12 +155,24 @@ class SearchViewController: UIViewController {
     }
     
     private func updateUI(results: [Stock]) {
-        if results.isEmpty && !viewModel.searchText.isEmpty && !viewModel.isLoading {
+        if viewModel.searchText.isEmpty {
+            emptyStateLabel.isHidden = false
+            emptyStateLabel.text = "Search for companies, tickers, or ETFs..."
+            tableView.isHidden = true
+        } else if results.isEmpty && !viewModel.isLoading {
             emptyStateLabel.isHidden = false
             emptyStateLabel.text = "No results found for '\(viewModel.searchText)'"
+            tableView.isHidden = true
         } else {
             emptyStateLabel.isHidden = true
+            tableView.isHidden = false
         }
+    }
+    
+    private func showInitialEmptyState() {
+        emptyStateLabel.isHidden = false
+        emptyStateLabel.text = "Search for companies, tickers, or ETFs..."
+        tableView.isHidden = true
     }
     
     

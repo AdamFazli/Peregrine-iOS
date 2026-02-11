@@ -62,7 +62,7 @@ class MainTabBarController: UITabBarController {
         let homeNav = createNavigationController(
             rootViewController: homeVC,
             title: "Home",
-            image: UIImage(systemName: "house.fill")
+            image: UIImage(systemName: "house")
         )
         
         let searchVC = SearchViewController()
@@ -76,7 +76,7 @@ class MainTabBarController: UITabBarController {
         let watchlistNav = createNavigationController(
             rootViewController: watchlistVC,
             title: "Watchlist",
-            image: UIImage(systemName: "star")
+            image: UIImage(systemName: "chart.pie")
         )
         
         let settingsVC = SettingsViewController()
