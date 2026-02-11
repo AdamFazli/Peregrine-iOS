@@ -33,23 +33,8 @@ extension SceneDelegate {
     }
     
     private func setupMainFlow(window: UIWindow) {
-        let placeholderVC = UIViewController()
-        placeholderVC.view.backgroundColor = Constants.UI.Colors.backgroundDark
-        
-        let label = UILabel()
-        label.text = "Main App Coming Soon"
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 24, weight: .bold)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        
-        placeholderVC.view.addSubview(label)
-        
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: placeholderVC.view.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: placeholderVC.view.centerYAnchor)
-        ])
-        
-        window.rootViewController = placeholderVC
+        let mainTabBar = MainTabBarController()
+        window.rootViewController = mainTabBar
     }
     
     func switchToMainFlow() {
