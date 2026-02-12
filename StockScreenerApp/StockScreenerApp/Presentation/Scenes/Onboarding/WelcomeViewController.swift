@@ -54,12 +54,10 @@ class WelcomeViewController: UIViewController {
     }
     
     @IBAction func getStartedTapped(_ sender: Any) {
-        UserDefaults.standard.set(true, forKey: Constants.UserDefaultsKeys.hasSeenOnboarding)
-        
         guard let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate else {
             return
-    }
+        }
         
-        sceneDelegate.switchToMainFlow()
+        sceneDelegate.switchToAuthFlow()
     }
 }

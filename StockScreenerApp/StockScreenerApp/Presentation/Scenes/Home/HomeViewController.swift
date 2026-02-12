@@ -164,6 +164,25 @@ class HomeViewController: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
         viewModel.loadRecentStocks()
+        loadUserProfile()
+    }
+    
+    private func loadUserProfile() {
+        if let profileImage = ProfileImageManager.shared.loadProfileImage() {
+            avatarImageView.image = profileImage
+            avatarImageView.contentMode = .scaleAspectFill
+        } else {
+            avatarImageView.image = UIImage(systemName: "person.crop.circle.fill")
+            avatarImageView.contentMode = .scaleAspectFit
+        }
+        
+        if let user = AuthManager.shared.currentUser {
+            let firstName = user.name.split(separator: " ").first.map(String.init) ?? user.name
+            viewModel.updateGreeting()
+            if !firstName.isEmpty {
+                greetingLabel.text = "\(viewModel.greeting), \(firstName)"
+            }
+        }
     }
     
     override func viewWillDisappear(_ animated: Bool) {

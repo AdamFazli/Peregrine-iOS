@@ -192,7 +192,7 @@ class SettingsViewController: UIViewController {
 
 extension SettingsViewController: UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 3
+        return 4
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -200,6 +200,7 @@ extension SettingsViewController: UITableViewDataSource {
         case 0: return 2
         case 1: return 1
         case 2: return 3
+        case 3: return 1
         default: return 0
         }
     }
@@ -249,6 +250,13 @@ extension SettingsViewController: UITableViewDataSource {
             cell.imageView?.tintColor = Constants.UI.Colors.primary
             cell.accessoryType = .disclosureIndicator
             
+        case (3, 0):
+            cell.textLabel?.text = "Log Out"
+            cell.textLabel?.textColor = .systemRed
+            cell.imageView?.image = UIImage(systemName: "rectangle.portrait.and.arrow.right")
+            cell.imageView?.tintColor = .systemRed
+            cell.accessoryType = .none
+            
         default:
             break
         }
@@ -261,6 +269,7 @@ extension SettingsViewController: UITableViewDataSource {
         case 0: return "PREFERENCES"
         case 1: return "DATA MANAGEMENT"
         case 2: return "INFORMATION"
+        case 3: return "ACCOUNT"
         default: return nil
         }
     }
@@ -297,13 +306,38 @@ extension SettingsViewController: UITableViewDelegate {
         case (2, 2):
             showRateUs()
             
+        case (3, 0):
+            showLogoutConfirmation()
+            
         default:
             break
         }
     }
     
+    private func showLogoutConfirmation() {
+        let alert = UIAlertController(
+            title: "Log Out",
+            message: "Are you sure you want to log out?",
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Log Out", style: .destructive) { [weak self] _ in
+            self?.performLogout()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func performLogout() {
+        AuthManager.shared.logout()
+        
+        guard let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate else { return }
+        sceneDelegate.switchToLoginFlow()
+    }
+    
     func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if section == 2 {
+        if section == 3 {
             return "StockScreener v\(viewModel.appVersion) (Build \(viewModel.buildNumber))"
         }
         return nil

@@ -12,11 +12,14 @@ import Combine
 class StockDetailViewModel: ObservableObject {
     @Published var stockDetail: StockDetail?
     @Published var stockHistory: StockHistory?
+    @Published var companyOverview: CompanyOverview?
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var retryCountdown: Int = 0
+    @Published var isOfflineMode: Bool = false
     
     private let networkManager: NetworkManager
+    private let cacheManager = StockCacheManager.shared
     private var retryTimer: Timer?
     let symbol: String
     
@@ -38,21 +41,53 @@ class StockDetailViewModel: ObservableObject {
         errorMessage = nil
         retryCountdown = 0
         retryTimer?.invalidate()
+        isOfflineMode = false
         
         do {
             let quoteResponse: QuoteResponse = try await networkManager.fetch(endpoint: StockEndpoint.quote(symbol: symbol))
-            let history: StockHistory = try await networkManager.fetch(endpoint: StockEndpoint.monthlyTimeSeries(symbol: symbol))
-            
             self.stockDetail = quoteResponse.globalQuote
+            
+            let cachedDetail = CachedStockDetail(from: quoteResponse.globalQuote)
+            cacheManager.cacheStockDetail(cachedDetail, for: symbol)
+            
+            let history: StockHistory = try await networkManager.fetch(endpoint: StockEndpoint.dailyTimeSeries(symbol: symbol))
             self.stockHistory = history
+            
+            let cachedHistory = CachedStockHistory(symbol: symbol, prices: history.prices)
+            cacheManager.cacheStockHistory(cachedHistory, for: symbol)
+            
+            if let overview = try? await networkManager.fetch(endpoint: StockEndpoint.overview(symbol: symbol)) as CompanyOverview {
+                self.companyOverview = overview
+            }
+            
             self.isLoading = false
             
         } catch let error as NetworkError {
-            handleError(error)
+            if loadFromCache() {
+                isOfflineMode = true
+                isLoading = false
+            } else {
+                handleError(error)
+            }
         } catch {
-            errorMessage = "An unexpected error occurred"
-            isLoading = false
+            if loadFromCache() {
+                isOfflineMode = true
+                isLoading = false
+            } else {
+                errorMessage = "An unexpected error occurred"
+                isLoading = false
+            }
         }
+    }
+    
+    private func loadFromCache() -> Bool {
+        guard let cachedDetail = cacheManager.getCachedStockDetail(for: symbol),
+              let stockDetail = cachedDetail.toStockDetail() else {
+            return false
+        }
+        
+        self.stockDetail = stockDetail
+        return true
     }
     
     private func handleError(_ error: NetworkError) {

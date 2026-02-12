@@ -249,7 +249,9 @@ class DashboardView: UIView {
                 recentlyViewedCollection.reloadData()
             }
         } catch {
-            print("Error loading recent stocks: \(error)")
+            recentStocks = []
+            recentlyViewedCollection.isHidden = true
+            emptyRecentLabel.isHidden = false
         }
     }
 }

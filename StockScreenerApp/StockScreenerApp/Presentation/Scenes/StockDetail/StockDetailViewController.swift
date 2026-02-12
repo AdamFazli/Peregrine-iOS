@@ -78,16 +78,17 @@ class StockDetailViewController: UIViewController {
     
     private let chartView: SimpleLineChartView = {
         let view = SimpleLineChartView()
+        view.backgroundColor = UIColor(white: 1.0, alpha: 0.02)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
     private let statsGridView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.spacing = 12
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 12
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        return stack
     }()
     
     private let loadingIndicator: UIActivityIndicatorView = {
@@ -180,6 +181,17 @@ class StockDetailViewController: UIViewController {
         ])
     }
     
+    private func setupWatchlistButton() {
+        let starButton = UIBarButtonItem(
+            image: UIImage(systemName: "star"),
+            style: .plain,
+            target: self,
+            action: #selector(watchlistTapped)
+        )
+        starButton.tintColor = Constants.UI.Colors.primary
+        navigationItem.rightBarButtonItem = starButton
+    }
+    
     private func bindViewModel() {
         viewModel.$isLoading
             .receive(on: DispatchQueue.main)
@@ -205,6 +217,15 @@ class StockDetailViewController: UIViewController {
             .compactMap { $0 }
             .sink { [weak self] history in
                 self?.updateChart(with: history)
+            }
+            .store(in: &cancellables)
+        
+        viewModel.$companyOverview
+            .receive(on: DispatchQueue.main)
+            .compactMap { $0 }
+            .sink { [weak self] _ in
+                guard let self = self, let detail = self.viewModel.stockDetail else { return }
+                self.setupStatsGrid(with: detail)
             }
             .store(in: &cancellables)
         
@@ -239,12 +260,15 @@ class StockDetailViewController: UIViewController {
     
     private func updateChart(with history: StockHistory) {
         let selectedPeriod = TimePeriod.allCases[periodSelector.selectedSegmentIndex]
-        let prices = history.pricesForPeriod(selectedPeriod)
+        var prices = history.pricesForPeriod(selectedPeriod)
         
-        guard !prices.isEmpty else {
-            chartView.setData(history.prices, color: Constants.UI.Colors.primary, animated: true)
-            return
+        if prices.isEmpty {
+            prices = history.prices
         }
+        
+        guard !prices.isEmpty else { return }
+        
+        chartView.layoutIfNeeded()
         
         let first = prices.first ?? 0
         let last = prices.last ?? 0
@@ -292,6 +316,28 @@ class StockDetailViewController: UIViewController {
         )
         statsGridView.addArrangedSubview(row3)
         
+        if let overview = viewModel.companyOverview {
+            let row4 = createStatsRow(
+                stat1: ("MARKET CAP", overview.formattedMarketCap),
+                stat2: ("DIVIDEND", overview.formattedDividendYield)
+            )
+            statsGridView.addArrangedSubview(row4)
+            
+            let row5 = createStatsRow(
+                stat1: ("52W HIGH", String(format: "$%@", overview.fiftyTwoWeekHigh)),
+                stat2: ("52W LOW", String(format: "$%@", overview.fiftyTwoWeekLow))
+            )
+            statsGridView.addArrangedSubview(row5)
+            
+            if let pe = Double(overview.peRatio), pe > 0 {
+                let row6 = createStatsRow(
+                    stat1: ("P/E RATIO", String(format: "%.2f", pe)),
+                    stat2: ("EPS", "$\(overview.eps)")
+                )
+                statsGridView.addArrangedSubview(row6)
+            }
+        }
+        
         animateStatsGrid()
     }
     
@@ -316,156 +362,129 @@ class StockDetailViewController: UIViewController {
     private func createStatsRow(stat1: (String, String), stat2: (String, String)) -> UIView {
         let rowStack = UIStackView()
         rowStack.axis = .horizontal
-        rowStack.distribution = .fillEqually
         rowStack.spacing = 12
+        rowStack.distribution = .fillEqually
         
-        let card1 = createStatCard(title: stat1.0, value: stat1.1)
-        rowStack.addArrangedSubview(card1)
+        func createStatCard(label: String, value: String) -> UIView {
+            let container = UIView()
+            container.backgroundColor = UIColor(white: 1.0, alpha: 0.05)
+            container.layer.cornerRadius = 12
+            container.translatesAutoresizingMaskIntoConstraints = false
+            
+            let labelView = UILabel()
+            labelView.text = label
+            labelView.font = .systemFont(ofSize: 12, weight: .medium)
+            labelView.textColor = Constants.UI.Colors.textSecondary
+            labelView.translatesAutoresizingMaskIntoConstraints = false
+            
+            let valueView = UILabel()
+            valueView.text = value
+            valueView.font = .systemFont(ofSize: 18, weight: .semibold)
+            valueView.textColor = .white
+            valueView.translatesAutoresizingMaskIntoConstraints = false
+            
+            container.addSubview(labelView)
+            container.addSubview(valueView)
+            
+            NSLayoutConstraint.activate([
+                labelView.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
+                labelView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+                labelView.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -16),
+                
+                valueView.topAnchor.constraint(equalTo: labelView.bottomAnchor, constant: 4),
+                valueView.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
+                valueView.trailingAnchor.constraint(lessThanOrEqualTo: container.trailingAnchor, constant: -16),
+                valueView.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12),
+                
+                container.heightAnchor.constraint(greaterThanOrEqualToConstant: 70)
+            ])
+            
+            return container
+        }
+        
+        rowStack.addArrangedSubview(createStatCard(label: stat1.0, value: stat1.1))
         
         if !stat2.0.isEmpty {
-            let card2 = createStatCard(title: stat2.0, value: stat2.1)
-            rowStack.addArrangedSubview(card2)
+            rowStack.addArrangedSubview(createStatCard(label: stat2.0, value: stat2.1))
         }
         
         return rowStack
     }
     
-    private func createStatCard(title: String, value: String) -> UIView {
-        let container = UIView()
-        container.backgroundColor = UIColor(white: 1.0, alpha: 0.05)
-        container.layer.cornerRadius = 12
-        
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        titleLabel.textColor = Constants.UI.Colors.textSecondary
-        titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.minimumScaleFactor = 0.8
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        let valueLabel = UILabel()
-        valueLabel.text = value
-        valueLabel.font = .systemFont(ofSize: 18, weight: .bold)
-        valueLabel.textColor = .white
-        valueLabel.adjustsFontSizeToFitWidth = true
-        valueLabel.minimumScaleFactor = 0.7
-        valueLabel.numberOfLines = 1
-        valueLabel.translatesAutoresizingMaskIntoConstraints = false
-        
-        container.addSubview(titleLabel)
-        container.addSubview(valueLabel)
-        
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: container.topAnchor, constant: 12),
-            titleLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
-            
-            valueLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
-            valueLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
-            valueLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
-            valueLabel.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -12)
-        ])
-        
-        return container
-    }
-    
     private func formatVolume(_ volume: String) -> String {
-        guard let volumeInt = Int(volume) else { return volume }
-        let billion = 1_000_000_000
-        let million = 1_000_000
+        guard let volumeInt = Double(volume) else { return volume }
         
-        if volumeInt >= billion {
-            return String(format: "%.2fB", Double(volumeInt) / Double(billion))
-        } else if volumeInt >= million {
-            return String(format: "%.2fM", Double(volumeInt) / Double(million))
-        } else {
-            return volume
+        if volumeInt >= 1_000_000_000 {
+            return String(format: "%.2fB", volumeInt / 1_000_000_000)
+        } else if volumeInt >= 1_000_000 {
+            return String(format: "%.2fM", volumeInt / 1_000_000)
+        } else if volumeInt >= 1_000 {
+            return String(format: "%.2fK", volumeInt / 1_000)
         }
+        return volume
     }
     
-    private var currentAlert: UIAlertController?
-    
-    private func showError(_ message: String) {
-        currentAlert?.dismiss(animated: false)
+    @objc private func watchlistTapped() {
+        guard let stock = currentStock else { return }
         
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            self?.currentAlert = nil
-        })
-        currentAlert = alert
-        present(alert, animated: true)
-    }
-    
-    private func updateErrorWithCountdown(_ countdown: Int) {
-        guard let alert = currentAlert else { return }
-        
-        let baseMessage = "Rate limit exceeded. Please wait"
-        alert.message = "\(baseMessage) \(countdown) seconds."
-    }
-    
-    private func setupWatchlistButton() {
-        let starButton = UIBarButtonItem(
-            image: UIImage(systemName: "star"),
-            style: .plain,
-            target: self,
-            action: #selector(toggleWatchlist)
-        )
-        navigationItem.rightBarButtonItem = starButton
-    }
-    
-    private func checkWatchlistStatus() {
-        do {
-            isInWatchlist = try repository.contains(symbol: viewModel.symbol)
-            updateWatchlistButton()
-        } catch {
-            print("Error checking watchlist status: \(error)")
-        }
-    }
-    
-    private func updateWatchlistButton(animated: Bool = false) {
-        let imageName = isInWatchlist ? "star.fill" : "star"
-        navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
-        navigationItem.rightBarButtonItem?.tintColor = isInWatchlist ? Constants.UI.Colors.primary : .white
-        
-        if animated, let barButtonView = navigationItem.rightBarButtonItem?.value(forKey: "view") as? UIView {
-            UIView.animate(
-                withDuration: 0.3,
-                delay: 0,
-                usingSpringWithDamping: 0.5,
-                initialSpringVelocity: 0.8,
-                options: [.curveEaseInOut]
-            ) {
-                barButtonView.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
-            } completion: { _ in
-                UIView.animate(withDuration: 0.2) {
-                    barButtonView.transform = .identity
-                }
-            }
-        }
-    }
-    
-    @objc private func toggleWatchlist() {
-        guard let stock = currentStock else {
-            showError("Stock information not available")
-            return
-        }
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
         
         do {
             if isInWatchlist {
                 try repository.remove(stock: stock)
                 isInWatchlist = false
+                updateWatchlistButton(filled: false)
             } else {
                 try repository.save(stock: stock)
                 isInWatchlist = true
+                updateWatchlistButton(filled: true)
+                animateStarButton()
             }
-            updateWatchlistButton(animated: true)
-            
-            let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
-            feedbackGenerator.impactOccurred()
-            
         } catch {
-            showError("Failed to update watchlist: \(error.localizedDescription)")
+            showError("Failed to update watchlist")
         }
     }
+    
+    private func checkWatchlistStatus() {
+        guard let stock = currentStock else { return }
+        
+        do {
+            let allStocks = try repository.getAll()
+            isInWatchlist = allStocks.contains { $0.symbol == stock.symbol }
+            updateWatchlistButton(filled: isInWatchlist)
+        } catch {
+            isInWatchlist = false
+            updateWatchlistButton(filled: false)
+        }
+    }
+    
+    private func updateWatchlistButton(filled: Bool) {
+        let imageName = filled ? "star.fill" : "star"
+        navigationItem.rightBarButtonItem?.image = UIImage(systemName: imageName)
+    }
+    
+    private func animateStarButton() {
+        guard let button = navigationItem.rightBarButtonItem else { return }
+        
+        UIView.animate(withDuration: 0.2, animations: {
+            button.customView?.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+        }) { _ in
+            UIView.animate(withDuration: 0.2) {
+                button.customView?.transform = .identity
+            }
+        }
+    }
+    
+    private func showError(_ message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+    
+    private func updateErrorWithCountdown(_ countdown: Int) {
+        let message = "Rate limit exceeded. Please wait \(countdown) seconds."
+        let alert = UIAlertController(title: "Rate Limit", message: message, preferredStyle: .alert)
+        present(alert, animated: true)
+    }
 }
-

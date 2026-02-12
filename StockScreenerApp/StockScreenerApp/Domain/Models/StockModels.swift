@@ -129,6 +129,56 @@ struct QuoteResponse: Decodable {
     }
 }
 
+// MARK: - CompanyOverview (Market Cap, Dividend, 52-Week Range)
+
+struct CompanyOverview: Decodable {
+    let symbol: String
+    let name: String
+    let description: String
+    let marketCap: String
+    let dividendYield: String
+    let fiftyTwoWeekHigh: String
+    let fiftyTwoWeekLow: String
+    let peRatio: String
+    let eps: String
+    
+    var formattedMarketCap: String {
+        guard let value = Double(marketCap) else { return "N/A" }
+        if value >= 1_000_000_000_000 {
+            return String(format: "$%.2fT", value / 1_000_000_000_000)
+        } else if value >= 1_000_000_000 {
+            return String(format: "$%.2fB", value / 1_000_000_000)
+        } else if value >= 1_000_000 {
+            return String(format: "$%.2fM", value / 1_000_000)
+        }
+        return "$\(marketCap)"
+    }
+    
+    var formattedDividendYield: String {
+        guard let value = Double(dividendYield) else { return "N/A" }
+        return String(format: "%.2f%%", value * 100)
+    }
+    
+    var formatted52WeekRange: String {
+        guard let high = Double(fiftyTwoWeekHigh), let low = Double(fiftyTwoWeekLow) else {
+            return "N/A"
+        }
+        return String(format: "$%.2f - $%.2f", low, high)
+    }
+    
+    enum CodingKeys: String, CodingKey {
+        case symbol = "Symbol"
+        case name = "Name"
+        case description = "Description"
+        case marketCap = "MarketCapitalization"
+        case dividendYield = "DividendYield"
+        case fiftyTwoWeekHigh = "52WeekHigh"
+        case fiftyTwoWeekLow = "52WeekLow"
+        case peRatio = "PERatio"
+        case eps = "EPS"
+    }
+}
+
 // MARK: - StockHistory (Time Series Data)
 
 enum TimePeriod: String, CaseIterable {
@@ -151,35 +201,21 @@ struct StockHistory: Decodable {
     
     func pricesForPeriod(_ period: TimePeriod) -> [Double] {
         let sortedDates = timeSeries.keys.sorted()
-        let now = Date()
         
+
         let filteredDates: [String]
         switch period {
         case .day:
-            filteredDates = sortedDates.filter { dateString in
-                guard let date = parseDate(dateString) else { return false }
-                return now.timeIntervalSince(date) <= 86400
-            }
+
+            filteredDates = Array(sortedDates.suffix(7))
         case .week:
-            filteredDates = sortedDates.filter { dateString in
-                guard let date = parseDate(dateString) else { return false }
-                return now.timeIntervalSince(date) <= 604800
-            }
+            filteredDates = Array(sortedDates.suffix(7))
         case .month:
-            filteredDates = sortedDates.filter { dateString in
-                guard let date = parseDate(dateString) else { return false }
-                return now.timeIntervalSince(date) <= 2592000
-            }
+            filteredDates = Array(sortedDates.suffix(30))
         case .threeMonths:
-            filteredDates = sortedDates.filter { dateString in
-                guard let date = parseDate(dateString) else { return false }
-                return now.timeIntervalSince(date) <= 7776000
-            }
+            filteredDates = Array(sortedDates.suffix(90))
         case .year:
-            filteredDates = sortedDates.filter { dateString in
-                guard let date = parseDate(dateString) else { return false }
-                return now.timeIntervalSince(date) <= 31536000
-            }
+            filteredDates = Array(sortedDates.suffix(365))
         case .all:
             filteredDates = sortedDates
         }

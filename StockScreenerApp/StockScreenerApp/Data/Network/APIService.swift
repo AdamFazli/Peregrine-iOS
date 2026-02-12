@@ -51,6 +51,7 @@ extension Endpoint {
 enum StockEndpoint: Endpoint {
     case quote(symbol: String)
     case search(keywords: String)
+    case overview(symbol: String)
     case intradayTimeSeries(symbol: String)
     case dailyTimeSeries(symbol: String)
     case monthlyTimeSeries(symbol: String)
@@ -71,6 +72,12 @@ enum StockEndpoint: Endpoint {
             return [
                 URLQueryItem(name: "function", value: "SYMBOL_SEARCH"),
                 URLQueryItem(name: "keywords", value: keywords)
+            ]
+            
+        case .overview(let symbol):
+            return [
+                URLQueryItem(name: "function", value: "OVERVIEW"),
+                URLQueryItem(name: "symbol", value: symbol)
             ]
             
         case .intradayTimeSeries(let symbol):

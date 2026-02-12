@@ -17,26 +17,34 @@ class SimpleLineChartView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
+        clipsToBounds = true
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         backgroundColor = .clear
+        clipsToBounds = true
     }
     
     func setData(_ points: [Double], color: UIColor = Constants.UI.Colors.primary, animated: Bool = true) {
+        guard !points.isEmpty else { return }
+        
         self.dataPoints = points
         self.lineColor = color
         
         lineLayer?.removeFromSuperlayer()
         gradientLayer?.removeFromSuperlayer()
         
-        if animated {
-            setNeedsLayout()
-            layoutIfNeeded()
-            animateChart()
-        } else {
-            setNeedsDisplay()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
+            if animated {
+                self.setNeedsLayout()
+                self.layoutIfNeeded()
+                self.animateChart()
+            } else {
+                self.setNeedsDisplay()
+            }
         }
     }
     

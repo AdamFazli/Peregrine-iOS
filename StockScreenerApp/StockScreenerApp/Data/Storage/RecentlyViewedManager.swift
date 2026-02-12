@@ -38,7 +38,7 @@ class RecentlyViewedManager {
             try data.write(to: fileURL, options: [.atomic])
             
         } catch {
-            print("Error adding to recently viewed: \(error)")
+            return
         }
     }
     
