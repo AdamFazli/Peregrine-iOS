@@ -9,160 +9,84 @@ import PhotosUI
 import UIKit
 
 class RegisterViewController: UIViewController {
-    var onRegistrationComplete: (() -> Void)?
-
+    
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var subtitleLabel: UILabel!
+    @IBOutlet weak var profileImageContainer: UIView!
+    @IBOutlet weak var profileImageView: UIImageView!
+    @IBOutlet weak var addPhotoButton: UIButton!
+    @IBOutlet weak var photoHintLabel: UILabel!
+    @IBOutlet weak var nameTextField: UITextField!
+    @IBOutlet weak var emailTextField: UITextField!
+    @IBOutlet weak var passwordTextField: UITextField!
+    @IBOutlet weak var registerButton: UIButton!
+    @IBOutlet weak var loginButton: UIButton!
+    @IBOutlet weak var errorLabel: UILabel!
+    
     private var selectedImage: UIImage?
 
-    private let scrollView: UIScrollView = {
-        let scroll = UIScrollView()
-        scroll.translatesAutoresizingMaskIntoConstraints = false
-        scroll.showsVerticalScrollIndicator = false
-        return scroll
-    }()
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        setupKeyboardDismissal()
+        setupImageTap()
+    }
 
-    private let contentView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private let backButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        button.tintColor = .white
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Create Account"
-        label.font = .systemFont(ofSize: 32, weight: .bold)
-        label.textColor = .white
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private let subtitleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Start your investment journey"
-        label.font = .systemFont(ofSize: 16, weight: .regular)
-        label.textColor = Constants.UI.Colors.textSecondary
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private let profileImageContainer: UIView = {
-        let view = UIView()
-        view.backgroundColor = Constants.UI.Colors.cardDark
-        view.layer.cornerRadius = 50
-        view.layer.borderWidth = 2
-        view.layer.borderColor = Constants.UI.Colors.primary.cgColor
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-
-    private let profileImageView: UIImageView = {
-        let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person.fill")
-        imageView.tintColor = Constants.UI.Colors.textSecondary
-        imageView.contentMode = .scaleAspectFill
-        imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 46
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        return imageView
-    }()
-
-    private let addPhotoButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "camera.fill"), for: .normal)
-        button.tintColor = .white
-        button.backgroundColor = Constants.UI.Colors.primary
-        button.layer.cornerRadius = 16
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
-    private let photoHintLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Tap to add photo (optional)"
-        label.font = .systemFont(ofSize: 12, weight: .regular)
-        label.textColor = Constants.UI.Colors.textSecondary
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private let nameTextField: UITextField = {
-        let textField = UITextField()
-        textField.borderStyle = .none
-        textField.backgroundColor = Constants.UI.Colors.cardDark
-        textField.textColor = .white
-        textField.layer.cornerRadius = 12
-        textField.autocapitalizationType = .words
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
-        textField.leftViewMode = .always
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.attributedPlaceholder = NSAttributedString(
+    private func setupUI() {
+        view.backgroundColor = Constants.UI.Colors.backgroundDark
+        
+        titleLabel.textColor = .white
+        subtitleLabel.textColor = Constants.UI.Colors.textSecondary
+        
+        profileImageContainer.backgroundColor = Constants.UI.Colors.cardDark
+        profileImageContainer.layer.cornerRadius = 50
+        profileImageContainer.layer.borderWidth = 2
+        profileImageContainer.layer.borderColor = Constants.UI.Colors.primary.cgColor
+        
+        profileImageView.tintColor = Constants.UI.Colors.textSecondary
+        profileImageView.layer.cornerRadius = 46
+        profileImageView.clipsToBounds = true
+        
+        addPhotoButton.backgroundColor = Constants.UI.Colors.primary
+        addPhotoButton.tintColor = .white
+        addPhotoButton.layer.cornerRadius = 16
+        
+        photoHintLabel.textColor = Constants.UI.Colors.textSecondary
+        
+        nameTextField.backgroundColor = Constants.UI.Colors.cardDark
+        nameTextField.textColor = .white
+        nameTextField.layer.cornerRadius = 12
+        nameTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        nameTextField.leftViewMode = .always
+        nameTextField.attributedPlaceholder = NSAttributedString(
             string: "Full Name",
-            attributes: [.foregroundColor: Constants.UI.Colors.textSecondary]
+            attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.5)]
         )
-        return textField
-    }()
-
-    private let emailTextField: UITextField = {
-        let textField = UITextField()
-        textField.borderStyle = .none
-        textField.backgroundColor = Constants.UI.Colors.cardDark
-        textField.textColor = .white
-        textField.layer.cornerRadius = 12
-        textField.keyboardType = .emailAddress
-        textField.autocapitalizationType = .none
-        textField.autocorrectionType = .no
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
-        textField.leftViewMode = .always
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.attributedPlaceholder = NSAttributedString(
+        
+        emailTextField.backgroundColor = Constants.UI.Colors.cardDark
+        emailTextField.textColor = .white
+        emailTextField.layer.cornerRadius = 12
+        emailTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        emailTextField.leftViewMode = .always
+        emailTextField.attributedPlaceholder = NSAttributedString(
             string: "Email",
-            attributes: [.foregroundColor: Constants.UI.Colors.textSecondary]
+            attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.5)]
         )
-        return textField
-    }()
-
-    private let passwordTextField: UITextField = {
-        let textField = UITextField()
-        textField.borderStyle = .none
-        textField.backgroundColor = Constants.UI.Colors.cardDark
-        textField.textColor = .white
-        textField.layer.cornerRadius = 12
-        textField.isSecureTextEntry = true
-        textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
-        textField.leftViewMode = .always
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        textField.attributedPlaceholder = NSAttributedString(
+        
+        passwordTextField.backgroundColor = Constants.UI.Colors.cardDark
+        passwordTextField.textColor = .white
+        passwordTextField.layer.cornerRadius = 12
+        passwordTextField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 0))
+        passwordTextField.leftViewMode = .always
+        passwordTextField.attributedPlaceholder = NSAttributedString(
             string: "Password",
-            attributes: [.foregroundColor: Constants.UI.Colors.textSecondary]
+            attributes: [.foregroundColor: UIColor.white.withAlphaComponent(0.5)]
         )
-        return textField
-    }()
-
-    private let registerButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Create Account", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.titleLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
-        button.backgroundColor = Constants.UI.Colors.primary
-        button.layer.cornerRadius = 12
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
-    private let loginButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-
+        
+        registerButton.backgroundColor = Constants.UI.Colors.primary
+        registerButton.setTitleColor(.black, for: .normal)
+        registerButton.layer.cornerRadius = 12
+        
         let attributedString = NSMutableAttributedString(
             string: "Already have an account? ",
             attributes: [.foregroundColor: Constants.UI.Colors.textSecondary]
@@ -171,128 +95,12 @@ class RegisterViewController: UIViewController {
             string: "Sign In",
             attributes: [.foregroundColor: Constants.UI.Colors.primary, .font: UIFont.systemFont(ofSize: 16, weight: .semibold)]
         ))
-        button.setAttributedTitle(attributedString, for: .normal)
-        return button
-    }()
-
-    private let errorLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = .systemRed
-        label.font = .systemFont(ofSize: 14, weight: .medium)
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.isHidden = true
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-        setupActions()
-        setupKeyboardDismissal()
+        loginButton.setAttributedTitle(attributedString, for: .normal)
+        
+        errorLabel.isHidden = true
     }
 
-    private func setupUI() {
-        view.backgroundColor = Constants.UI.Colors.backgroundDark
-        navigationController?.setNavigationBarHidden(true, animated: false)
-
-        view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
-
-        contentView.addSubview(backButton)
-        contentView.addSubview(titleLabel)
-        contentView.addSubview(subtitleLabel)
-        contentView.addSubview(profileImageContainer)
-        profileImageContainer.addSubview(profileImageView)
-        contentView.addSubview(addPhotoButton)
-        contentView.addSubview(photoHintLabel)
-        contentView.addSubview(nameTextField)
-        contentView.addSubview(emailTextField)
-        contentView.addSubview(passwordTextField)
-        contentView.addSubview(errorLabel)
-        contentView.addSubview(registerButton)
-        contentView.addSubview(loginButton)
-
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
-
-            backButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 16),
-            backButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            backButton.widthAnchor.constraint(equalToConstant: 44),
-            backButton.heightAnchor.constraint(equalToConstant: 44),
-
-            titleLabel.topAnchor.constraint(equalTo: backButton.bottomAnchor, constant: 24),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
-            subtitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            subtitleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-
-            profileImageContainer.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 32),
-            profileImageContainer.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            profileImageContainer.widthAnchor.constraint(equalToConstant: 100),
-            profileImageContainer.heightAnchor.constraint(equalToConstant: 100),
-
-            profileImageView.centerXAnchor.constraint(equalTo: profileImageContainer.centerXAnchor),
-            profileImageView.centerYAnchor.constraint(equalTo: profileImageContainer.centerYAnchor),
-            profileImageView.widthAnchor.constraint(equalToConstant: 92),
-            profileImageView.heightAnchor.constraint(equalToConstant: 92),
-
-            addPhotoButton.trailingAnchor.constraint(equalTo: profileImageContainer.trailingAnchor, constant: 4),
-            addPhotoButton.bottomAnchor.constraint(equalTo: profileImageContainer.bottomAnchor, constant: 4),
-            addPhotoButton.widthAnchor.constraint(equalToConstant: 32),
-            addPhotoButton.heightAnchor.constraint(equalToConstant: 32),
-
-            photoHintLabel.topAnchor.constraint(equalTo: profileImageContainer.bottomAnchor, constant: 8),
-            photoHintLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-
-            nameTextField.topAnchor.constraint(equalTo: photoHintLabel.bottomAnchor, constant: 24),
-            nameTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            nameTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            nameTextField.heightAnchor.constraint(equalToConstant: 56),
-
-            emailTextField.topAnchor.constraint(equalTo: nameTextField.bottomAnchor, constant: 16),
-            emailTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            emailTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            emailTextField.heightAnchor.constraint(equalToConstant: 56),
-
-            passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor, constant: 16),
-            passwordTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            passwordTextField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            passwordTextField.heightAnchor.constraint(equalToConstant: 56),
-
-            errorLabel.topAnchor.constraint(equalTo: passwordTextField.bottomAnchor, constant: 16),
-            errorLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            errorLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-
-            registerButton.topAnchor.constraint(equalTo: errorLabel.bottomAnchor, constant: 24),
-            registerButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 24),
-            registerButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -24),
-            registerButton.heightAnchor.constraint(equalToConstant: 56),
-
-            loginButton.topAnchor.constraint(equalTo: registerButton.bottomAnchor, constant: 24),
-            loginButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            loginButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40),
-        ])
-    }
-
-    private func setupActions() {
-        backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        addPhotoButton.addTarget(self, action: #selector(addPhotoTapped), for: .touchUpInside)
-        registerButton.addTarget(self, action: #selector(registerTapped), for: .touchUpInside)
-        loginButton.addTarget(self, action: #selector(loginTapped), for: .touchUpInside)
-
+    private func setupImageTap() {
         let imageTap = UITapGestureRecognizer(target: self, action: #selector(addPhotoTapped))
         profileImageContainer.addGestureRecognizer(imageTap)
         profileImageContainer.isUserInteractionEnabled = true
@@ -306,10 +114,6 @@ class RegisterViewController: UIViewController {
 
     @objc private func dismissKeyboard() {
         view.endEditing(true)
-    }
-
-    @objc private func backTapped() {
-        navigationController?.popViewController(animated: true)
     }
 
     @objc private func addPhotoTapped() {
@@ -364,7 +168,11 @@ class RegisterViewController: UIViewController {
         photoHintLabel.text = "Tap to add photo (optional)"
     }
 
-    @objc private func registerTapped() {
+    @IBAction func addPhotoButtonTapped(_ sender: UIButton) {
+        addPhotoTapped()
+    }
+    
+    @IBAction func registerTapped(_ sender: UIButton) {
         guard let name = nameTextField.text, !name.isEmpty else {
             showError("Please enter your name")
             return
@@ -393,7 +201,7 @@ class RegisterViewController: UIViewController {
         }
     }
 
-    @objc private func loginTapped() {
+    @IBAction func loginTapped(_ sender: UIButton) {
         navigationController?.popViewController(animated: true)
     }
 

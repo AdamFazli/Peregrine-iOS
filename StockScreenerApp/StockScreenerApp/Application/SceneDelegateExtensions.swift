@@ -39,7 +39,8 @@ extension SceneDelegate {
     }
     
     private func setupAuthFlow(window: UIWindow) {
-        let loginVC = LoginViewController()
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let loginVC = storyboard.instantiateViewController(withIdentifier: "LoginViewController")
         let navController = UINavigationController(rootViewController: loginVC)
         navController.setNavigationBarHidden(true, animated: false)
         window.rootViewController = navController
