@@ -9,72 +9,75 @@ import UIKit
 
 class WatchlistViewController: UIViewController {
     
+    @IBOutlet weak var headerView: UIView!
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var subtitleLabel: UILabel!
+    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var emptyStateView: UIView!
+    @IBOutlet weak var emptyIconLabel: UILabel!
+    @IBOutlet weak var emptyTitleLabel: UILabel!
+    @IBOutlet weak var emptyMessageLabel: UILabel!
+    
     private var stocks: [Stock] = []
     private let repository = WatchlistRepository.shared
-    
-    private lazy var tableView: UITableView = {
-        let tableView = UITableView()
-        tableView.backgroundColor = Constants.UI.Colors.backgroundDark
-        tableView.separatorStyle = .none
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let refreshControl = UIRefreshControl()
-        refreshControl.tintColor = Constants.UI.Colors.primary
-        refreshControl.addTarget(self, action: #selector(refreshWatchlist), for: .valueChanged)
-        tableView.refreshControl = refreshControl
-        
-        return tableView
-    }()
-    
-    private let emptyStateLabel: UILabel = {
-        let label = UILabel()
-        label.text = "No stocks in watchlist\nSearch and add stocks to track"
-        label.textColor = UIColor(white: 0.5, alpha: 1.0)
-        label.font = .systemFont(ofSize: 16, weight: .regular)
-        label.textAlignment = .center
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+    private var stockPrices: [String: (price: Double, change: Double)] = [:]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupTableView()
+        generateMockPrices()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
         loadWatchlist()
     }
     
     private func setupUI() {
-        title = "Watchlist"
-        view.backgroundColor = Constants.UI.Colors.backgroundDark
+        tableView.separatorStyle = .none
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 16, right: 0)
         
-        view.addSubview(tableView)
-        view.addSubview(emptyStateLabel)
-        
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            emptyStateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyStateLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor)
-        ])
+        let refreshControl = UIRefreshControl()
+        refreshControl.tintColor = Constants.UI.Colors.primary
+        refreshControl.addTarget(self, action: #selector(refreshWatchlist), for: .valueChanged)
+        tableView.refreshControl = refreshControl
     }
     
     private func setupTableView() {
-        tableView.register(StockCell.self, forCellReuseIdentifier: StockCell.reuseIdentifier)
+        tableView.register(WatchlistStockCell.self, forCellReuseIdentifier: WatchlistStockCell.reuseIdentifier)
         tableView.delegate = self
         tableView.dataSource = self
+    }
+    
+    private func generateMockPrices() {
+        let mockData: [String: (Double, Double)] = [
+            "AAPL": (178.35, 1.25),
+            "GOOGL": (135.20, 2.10),
+            "MSFT": (329.80, -0.32),
+            "AMZN": (142.50, 0.95),
+            "TSLA": (245.60, 3.48),
+            "META": (312.45, 1.85),
+            "NVDA": (485.10, 5.12),
+            "NFLX": (432.11, -0.85)
+        ]
+        
+        for stock in stocks {
+            if let data = mockData[stock.symbol] {
+                stockPrices[stock.symbol] = data
+            } else {
+                let randomPrice = Double.random(in: 50...500)
+                let randomChange = Double.random(in: -5...5)
+                stockPrices[stock.symbol] = (randomPrice, randomChange)
+            }
+        }
     }
     
     private func loadWatchlist() {
         do {
             stocks = try repository.getAll()
+            generateMockPrices()
             updateEmptyState()
             tableView.reloadData()
         } catch {
@@ -83,7 +86,7 @@ class WatchlistViewController: UIViewController {
     }
     
     private func updateEmptyState() {
-        emptyStateLabel.isHidden = !stocks.isEmpty
+        emptyStateView.isHidden = !stocks.isEmpty
         tableView.isHidden = stocks.isEmpty
     }
     
@@ -100,26 +103,13 @@ extension WatchlistViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: StockCell.reuseIdentifier, for: indexPath) as? StockCell else {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: WatchlistStockCell.reuseIdentifier, for: indexPath) as? WatchlistStockCell else {
             return UITableViewCell()
         }
         
         let stock = stocks[indexPath.row]
-        cell.configure(with: stock)
-        
-        cell.alpha = 0
-        cell.transform = CGAffineTransform(translationX: -20, y: 0)
-        
-        UIView.animate(
-            withDuration: 0.35,
-            delay: Double(indexPath.row) * 0.04,
-            usingSpringWithDamping: 0.85,
-            initialSpringVelocity: 0.5,
-            options: [.curveEaseOut]
-        ) {
-            cell.alpha = 1
-            cell.transform = .identity
-        }
+        let priceData = stockPrices[stock.symbol] ?? (0.0, 0.0)
+        cell.configure(with: stock, price: priceData.price, changePercent: priceData.change)
         
         return cell
     }

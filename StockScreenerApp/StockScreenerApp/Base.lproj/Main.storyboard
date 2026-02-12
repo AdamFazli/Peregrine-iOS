@@ -424,6 +424,166 @@
             </objects>
             <point key="canvasLocation" x="1887.7862595419847" y="140.84507042253523"/>
         </scene>
+        <!--Settings View Controller-->
+        <scene sceneID="d8Y-JG-Vft">
+            <objects>
+                <viewController storyboardIdentifier="SettingsViewController" id="ZbN-Jc-QfM" customClass="SettingsViewController" customModule="StockScreenerApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="h3E-Wu-fVb">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="settings-header">
+                                <rect key="frame" x="0.0" y="59" width="393" height="68"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Settings" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="settings-title">
+                                        <rect key="frame" x="20" y="24" width="353" height="33.666666666666671"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="28"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstItem="settings-title" firstAttribute="leading" secondItem="settings-header" secondAttribute="leading" constant="20" id="st-title-leading"/>
+                                    <constraint firstItem="settings-title" firstAttribute="top" secondItem="settings-header" secondAttribute="top" constant="24" id="st-title-top"/>
+                                    <constraint firstAttribute="trailing" secondItem="settings-title" secondAttribute="trailing" constant="20" id="st-title-trailing"/>
+                                    <constraint firstAttribute="height" constant="68" id="st-header-height"/>
+                                </constraints>
+                            </view>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="xCg-3d-zEh">
+                                <rect key="frame" x="0.0" y="119" width="393" height="699"/>
+                                <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </tableView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="R8k-Yn-b4E"/>
+                        <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="settings-header" firstAttribute="top" secondItem="R8k-Yn-b4E" secondAttribute="top" id="st-header-top"/>
+                            <constraint firstItem="settings-header" firstAttribute="leading" secondItem="R8k-Yn-b4E" secondAttribute="leading" id="st-header-leading"/>
+                            <constraint firstItem="settings-header" firstAttribute="trailing" secondItem="R8k-Yn-b4E" secondAttribute="trailing" id="st-header-trailing"/>
+                            <constraint firstItem="xCg-3d-zEh" firstAttribute="top" secondItem="settings-header" secondAttribute="bottom" id="st-table-top"/>
+                            <constraint firstItem="xCg-3d-zEh" firstAttribute="leading" secondItem="R8k-Yn-b4E" secondAttribute="leading" id="st-table-leading"/>
+                            <constraint firstItem="xCg-3d-zEh" firstAttribute="trailing" secondItem="R8k-Yn-b4E" secondAttribute="trailing" id="st-table-trailing"/>
+                            <constraint firstItem="xCg-3d-zEh" firstAttribute="bottom" secondItem="h3E-Wu-fVb" secondAttribute="bottom" id="st-table-bottom"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="headerView" destination="settings-header" id="hMx-pY-3oE"/>
+                        <outlet property="tableView" destination="xCg-3d-zEh" id="hMx-pY-3oD"/>
+                        <outlet property="titleLabel" destination="settings-title" id="hMx-pY-3oF"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="eLK-Qj-BNw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2700" y="140"/>
+        </scene>
+        <!--Watchlist View Controller-->
+        <scene sceneID="p2K-fN-Wxb">
+            <objects>
+                <viewController storyboardIdentifier="WatchlistViewController" id="UzD-9k-mHq" customClass="WatchlistViewController" customModule="StockScreenerApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="YjW-pB-3Cd">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-header">
+                                <rect key="frame" x="0.0" y="59" width="393" height="80"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Watchlist" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-title">
+                                        <rect key="frame" x="20" y="16" width="353" height="33.666666666666671"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="28"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Track your favorite assets" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-subtitle">
+                                        <rect key="frame" x="20" y="53.666666666666671" width="353" height="18"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                        <color key="textColor" red="0.57254901960784313" green="0.78823529411764703" blue="0.67843137254901964" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstItem="watchlist-title" firstAttribute="leading" secondItem="watchlist-header" secondAttribute="leading" constant="20" id="wl-title-leading"/>
+                                    <constraint firstItem="watchlist-title" firstAttribute="top" secondItem="watchlist-header" secondAttribute="top" constant="16" id="wl-title-top"/>
+                                    <constraint firstAttribute="trailing" secondItem="watchlist-title" secondAttribute="trailing" constant="20" id="wl-title-trailing"/>
+                                    <constraint firstItem="watchlist-subtitle" firstAttribute="leading" secondItem="watchlist-header" secondAttribute="leading" constant="20" id="wl-subtitle-leading"/>
+                                    <constraint firstItem="watchlist-subtitle" firstAttribute="top" secondItem="watchlist-title" secondAttribute="bottom" constant="4" id="wl-subtitle-top"/>
+                                    <constraint firstAttribute="trailing" secondItem="watchlist-subtitle" secondAttribute="trailing" constant="20" id="wl-subtitle-trailing"/>
+                                    <constraint firstAttribute="height" constant="80" id="wl-header-height"/>
+                                </constraints>
+                            </view>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-table">
+                                <rect key="frame" x="0.0" y="139" width="393" height="679"/>
+                                <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </tableView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-empty">
+                                <rect key="frame" x="40" y="346" width="313" height="160"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="⭐" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-empty-icon">
+                                        <rect key="frame" x="0.0" y="0.0" width="313" height="72"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="60"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="No stocks in watchlist" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-empty-title">
+                                        <rect key="frame" x="0.0" y="88" width="313" height="21.333333333333314"/>
+                                        <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                        <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Search and add stocks to start tracking their performance" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="watchlist-empty-message">
+                                        <rect key="frame" x="0.0" y="117.33333333333331" width="313" height="42.666666666666686"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                        <color key="textColor" red="0.57254901960784313" green="0.78823529411764703" blue="0.67843137254901964" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstItem="watchlist-empty-icon" firstAttribute="leading" secondItem="watchlist-empty" secondAttribute="leading" id="wl-empty-icon-leading"/>
+                                    <constraint firstItem="watchlist-empty-icon" firstAttribute="top" secondItem="watchlist-empty" secondAttribute="top" id="wl-empty-icon-top"/>
+                                    <constraint firstItem="watchlist-empty-icon" firstAttribute="trailing" secondItem="watchlist-empty" secondAttribute="trailing" id="wl-empty-icon-trailing"/>
+                                    <constraint firstItem="watchlist-empty-title" firstAttribute="leading" secondItem="watchlist-empty" secondAttribute="leading" id="wl-empty-title-leading"/>
+                                    <constraint firstItem="watchlist-empty-title" firstAttribute="top" secondItem="watchlist-empty-icon" secondAttribute="bottom" constant="16" id="wl-empty-title-top"/>
+                                    <constraint firstItem="watchlist-empty-title" firstAttribute="trailing" secondItem="watchlist-empty" secondAttribute="trailing" id="wl-empty-title-trailing"/>
+                                    <constraint firstItem="watchlist-empty-message" firstAttribute="leading" secondItem="watchlist-empty" secondAttribute="leading" id="wl-empty-message-leading"/>
+                                    <constraint firstItem="watchlist-empty-message" firstAttribute="top" secondItem="watchlist-empty-title" secondAttribute="bottom" constant="8" id="wl-empty-message-top"/>
+                                    <constraint firstItem="watchlist-empty-message" firstAttribute="trailing" secondItem="watchlist-empty" secondAttribute="trailing" id="wl-empty-message-trailing"/>
+                                    <constraint firstItem="watchlist-empty-message" firstAttribute="bottom" secondItem="watchlist-empty" secondAttribute="bottom" id="wl-empty-message-bottom"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="K7m-Rd-2hW"/>
+                        <color key="backgroundColor" red="0.062745098039215685" green="0.13333333333333333" blue="0.098039215686274508" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="watchlist-header" firstAttribute="top" secondItem="K7m-Rd-2hW" secondAttribute="top" id="wl-header-top"/>
+                            <constraint firstItem="watchlist-header" firstAttribute="leading" secondItem="K7m-Rd-2hW" secondAttribute="leading" id="wl-header-leading"/>
+                            <constraint firstItem="watchlist-header" firstAttribute="trailing" secondItem="K7m-Rd-2hW" secondAttribute="trailing" id="wl-header-trailing"/>
+                            <constraint firstItem="watchlist-table" firstAttribute="top" secondItem="watchlist-header" secondAttribute="bottom" id="wl-table-top"/>
+                            <constraint firstItem="watchlist-table" firstAttribute="leading" secondItem="K7m-Rd-2hW" secondAttribute="leading" id="wl-table-leading"/>
+                            <constraint firstItem="watchlist-table" firstAttribute="trailing" secondItem="K7m-Rd-2hW" secondAttribute="trailing" id="wl-table-trailing"/>
+                            <constraint firstItem="watchlist-table" firstAttribute="bottom" secondItem="YjW-pB-3Cd" secondAttribute="bottom" id="wl-table-bottom"/>
+                            <constraint firstItem="watchlist-empty" firstAttribute="centerX" secondItem="YjW-pB-3Cd" secondAttribute="centerX" id="wl-empty-centerX"/>
+                            <constraint firstItem="watchlist-empty" firstAttribute="centerY" secondItem="YjW-pB-3Cd" secondAttribute="centerY" constant="-40" id="wl-empty-centerY"/>
+                            <constraint firstItem="watchlist-empty" firstAttribute="leading" secondItem="K7m-Rd-2hW" secondAttribute="leading" constant="40" id="wl-empty-leading"/>
+                            <constraint firstItem="K7m-Rd-2hW" firstAttribute="trailing" secondItem="watchlist-empty" secondAttribute="trailing" constant="40" id="wl-empty-trailing"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="emptyIconLabel" destination="watchlist-empty-icon" id="bNx-cY-GhP"/>
+                        <outlet property="emptyMessageLabel" destination="watchlist-empty-message" id="qRv-mZ-8wX"/>
+                        <outlet property="emptyStateView" destination="watchlist-empty" id="Lpy-sK-Nwq"/>
+                        <outlet property="emptyTitleLabel" destination="watchlist-empty-title" id="uTf-Bh-Jxd"/>
+                        <outlet property="headerView" destination="watchlist-header" id="WvQ-fK-7pN"/>
+                        <outlet property="subtitleLabel" destination="watchlist-subtitle" id="K8r-Fv-mYp"/>
+                        <outlet property="tableView" destination="watchlist-table" id="Nzh-dJ-8eQ"/>
+                        <outlet property="titleLabel" destination="watchlist-title" id="Xgc-Hp-9wR"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="bF7-Kq-Mnp" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2700" y="900"/>
+        </scene>
     </scenes>
     <resources>
         <image name="WelcomeChart" width="170.66667175292969" height="170.66667175292969"/>

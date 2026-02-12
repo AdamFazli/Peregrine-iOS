@@ -72,14 +72,15 @@ class MainTabBarController: UITabBarController {
             image: UIImage(systemName: "magnifyingglass")
         )
         
-        let watchlistVC = WatchlistViewController()
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let watchlistVC = storyboard.instantiateViewController(withIdentifier: "WatchlistViewController") as! WatchlistViewController
         let watchlistNav = createNavigationController(
             rootViewController: watchlistVC,
             title: "Watchlist",
             image: UIImage(systemName: "chart.pie")
         )
         
-        let settingsVC = SettingsViewController()
+        let settingsVC = storyboard.instantiateViewController(withIdentifier: "SettingsViewController") as! SettingsViewController
         let settingsNav = createNavigationController(
             rootViewController: settingsVC,
             title: "Settings",

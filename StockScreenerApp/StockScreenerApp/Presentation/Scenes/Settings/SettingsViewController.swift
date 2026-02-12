@@ -10,18 +10,12 @@ import Combine
 
 class SettingsViewController: UIViewController {
     
+    @IBOutlet weak var headerView: UIView!
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var tableView: UITableView!
+    
     private let viewModel = SettingsViewModel()
     private var cancellables = Set<AnyCancellable>()
-    
-    private lazy var tableView: UITableView = {
-        let table = UITableView(frame: .zero, style: .insetGrouped)
-        table.backgroundColor = Constants.UI.Colors.backgroundDark
-        table.translatesAutoresizingMaskIntoConstraints = false
-        table.delegate = self
-        table.dataSource = self
-        return table
-    }()
-    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,24 +23,22 @@ class SettingsViewController: UIViewController {
         bindViewModel()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+    
     private func setupUI() {
-        title = "Settings"
-        view.backgroundColor = Constants.UI.Colors.backgroundDark
-        
-        view.addSubview(tableView)
-        
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.backgroundColor = Constants.UI.Colors.backgroundDark
+        tableView.contentInset = UIEdgeInsets(top: 8, left: 0, bottom: 0, right: 0)
+        tableView.sectionHeaderTopPadding = 0
         setupFooter()
     }
     
     private func setupFooter() {
-        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 120))
+        let footerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: 180))
         
         let iconImageView = UIImageView()
         iconImageView.image = UIImage(systemName: "chart.line.uptrend.xyaxis")
@@ -67,7 +59,7 @@ class SettingsViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             iconImageView.centerXAnchor.constraint(equalTo: footerView.centerXAnchor),
-            iconImageView.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 20),
+            iconImageView.topAnchor.constraint(equalTo: footerView.topAnchor, constant: 60),
             iconImageView.widthAnchor.constraint(equalToConstant: 40),
             iconImageView.heightAnchor.constraint(equalToConstant: 40),
             
@@ -279,6 +271,17 @@ extension SettingsViewController: UITableViewDataSource {
         header.textLabel?.textColor = Constants.UI.Colors.textSecondary
         header.textLabel?.font = .systemFont(ofSize: 13, weight: .semibold)
     }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if section == 0 {
+            return 40
+        }
+        return 50
+    }
+    
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 8
+    }
 }
 
 // MARK: - UITableViewDelegate
@@ -336,17 +339,4 @@ extension SettingsViewController: UITableViewDelegate {
         sceneDelegate.switchToLoginFlow()
     }
     
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if section == 3 {
-            return "StockScreener v\(viewModel.appVersion) (Build \(viewModel.buildNumber))"
-        }
-        return nil
-    }
-    
-    func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
-        guard let footer = view as? UITableViewHeaderFooterView else { return }
-        footer.textLabel?.textColor = Constants.UI.Colors.textSecondary
-        footer.textLabel?.font = .systemFont(ofSize: 12, weight: .regular)
-        footer.textLabel?.textAlignment = .center
-    }
 }
