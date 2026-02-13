@@ -280,17 +280,7 @@ Main App (Tab Bar)
         └── Account (Log Out)
 ```
 
-## Contributing
-
-This is a private assessment project. If you have suggestions or find bugs, please note them for future improvement.
-
-## License
-
-Private project - All rights reserved
-
----
-
-**Built with ❤️ using Clean Architecture and MVVM**
+**Built using Clean Architecture and MVVM**
 
 ## Future Improvement Ideas
 
