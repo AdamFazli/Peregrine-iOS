@@ -20,13 +20,14 @@ class WatchlistViewController: UIViewController {
     
     private var stocks: [Stock] = []
     private let repository = WatchlistRepository.shared
+    private let networkManager = NetworkManager.shared
     private var stockPrices: [String: (price: Double, change: Double)] = [:]
+    private var isLoadingPrices = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupTableView()
-        generateMockPrices()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -51,37 +52,62 @@ class WatchlistViewController: UIViewController {
         tableView.dataSource = self
     }
     
-    private func generateMockPrices() {
-        let mockData: [String: (Double, Double)] = [
-            "AAPL": (178.35, 1.25),
-            "GOOGL": (135.20, 2.10),
-            "MSFT": (329.80, -0.32),
-            "AMZN": (142.50, 0.95),
-            "TSLA": (245.60, 3.48),
-            "META": (312.45, 1.85),
-            "NVDA": (485.10, 5.12),
-            "NFLX": (432.11, -0.85)
-        ]
-        
-        for stock in stocks {
-            if let data = mockData[stock.symbol] {
-                stockPrices[stock.symbol] = data
-            } else {
-                let randomPrice = Double.random(in: 50...500)
-                let randomChange = Double.random(in: -5...5)
-                stockPrices[stock.symbol] = (randomPrice, randomChange)
-            }
-        }
-    }
-    
     private func loadWatchlist() {
         do {
             stocks = try repository.getAll()
-            generateMockPrices()
             updateEmptyState()
             tableView.reloadData()
+            
+            if !stocks.isEmpty {
+                fetchRealPrices()
+            }
         } catch {
             showError("Failed to load watchlist: \(error.localizedDescription)")
+        }
+    }
+    
+    private func fetchRealPrices() {
+        guard !isLoadingPrices else { return }
+        isLoadingPrices = true
+        
+        Task {
+            for (index, stock) in stocks.enumerated() {
+                do {
+                    let quoteResponse: QuoteResponse = try await networkManager.fetch(
+                        endpoint: StockEndpoint.quote(symbol: stock.symbol)
+                    )
+                    
+                    let detail = quoteResponse.globalQuote
+                    let changePercent = Double(detail.changePercent.replacingOccurrences(of: "%", with: "")) ?? 0.0
+                    
+                    await MainActor.run {
+                        self.stockPrices[stock.symbol] = (detail.price, changePercent)
+                        
+                        if let visibleIndexPath = self.tableView.indexPathsForVisibleRows?.first(where: { $0.row == index }) {
+                            self.tableView.reloadRows(at: [visibleIndexPath], with: .none)
+                        }
+                    }
+                    
+                    if index < stocks.count - 1 {
+                        try await Task.sleep(nanoseconds: 200_000_000)
+                    }
+                    
+                } catch let error as NetworkError {
+                    if case .rateLimitExceeded = error {
+                        await MainActor.run {
+                            self.subtitleLabel.text = "Rate limit reached. Pull to refresh later."
+                        }
+                        break
+                    }
+                } catch {
+                    continue
+                }
+            }
+            
+            await MainActor.run {
+                self.isLoadingPrices = false
+                self.tableView.refreshControl?.endRefreshing()
+            }
         }
     }
     
@@ -150,7 +176,7 @@ extension WatchlistViewController: UITableViewDelegate {
     }
     
     @objc private func refreshWatchlist() {
+        stockPrices.removeAll()
         loadWatchlist()
-        tableView.refreshControl?.endRefreshing()
     }
 }

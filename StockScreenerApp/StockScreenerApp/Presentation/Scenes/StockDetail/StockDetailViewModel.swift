@@ -50,7 +50,7 @@ class StockDetailViewModel: ObservableObject {
             let cachedDetail = CachedStockDetail(from: quoteResponse.globalQuote)
             cacheManager.cacheStockDetail(cachedDetail, for: symbol)
             
-            let history: StockHistory = try await networkManager.fetch(endpoint: StockEndpoint.dailyTimeSeries(symbol: symbol))
+            let history: StockHistory = try await networkManager.fetch(endpoint: StockEndpoint.monthlyTimeSeries(symbol: symbol))
             self.stockHistory = history
             
             let cachedHistory = CachedStockHistory(symbol: symbol, prices: history.prices)
@@ -87,6 +87,27 @@ class StockDetailViewModel: ObservableObject {
         }
         
         self.stockDetail = stockDetail
+        
+        if let cachedHistory = cacheManager.getCachedStockHistory(for: symbol) {
+            let timeSeries = Dictionary(uniqueKeysWithValues: cachedHistory.prices.enumerated().map { index, price in
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+                let date = Calendar.current.date(byAdding: .day, value: -index, to: Date()) ?? Date()
+                return (dateFormatter.string(from: date), StockHistory.TimeSeriesData(
+                    open: price,
+                    high: price,
+                    low: price,
+                    close: price,
+                    volume: "0"
+                ))
+            })
+            
+            self.stockHistory = StockHistory(
+                metaData: StockHistory.MetaData(symbol: symbol),
+                timeSeries: timeSeries
+            )
+        }
+        
         return true
     }
     

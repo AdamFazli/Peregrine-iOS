@@ -194,6 +194,11 @@ struct StockHistory: Decodable {
     let metaData: MetaData
     let timeSeries: [String: TimeSeriesData]
     
+    init(metaData: MetaData, timeSeries: [String: TimeSeriesData]) {
+        self.metaData = metaData
+        self.timeSeries = timeSeries
+    }
+    
     var prices: [Double] {
         let sortedDates = timeSeries.keys.sorted()
         return sortedDates.compactMap { timeSeries[$0]?.close }
@@ -202,20 +207,18 @@ struct StockHistory: Decodable {
     func pricesForPeriod(_ period: TimePeriod) -> [Double] {
         let sortedDates = timeSeries.keys.sorted()
         
-
         let filteredDates: [String]
         switch period {
         case .day:
-
-            filteredDates = Array(sortedDates.suffix(7))
+            filteredDates = Array(sortedDates.suffix(1))
         case .week:
-            filteredDates = Array(sortedDates.suffix(7))
+            filteredDates = Array(sortedDates.suffix(1))
         case .month:
-            filteredDates = Array(sortedDates.suffix(30))
+            filteredDates = Array(sortedDates.suffix(3))
         case .threeMonths:
-            filteredDates = Array(sortedDates.suffix(90))
+            filteredDates = Array(sortedDates.suffix(3))
         case .year:
-            filteredDates = Array(sortedDates.suffix(365))
+            filteredDates = Array(sortedDates.suffix(12))
         case .all:
             filteredDates = sortedDates
         }
@@ -250,6 +253,15 @@ struct StockHistory: Decodable {
         enum CodingKeys: String, CodingKey {
             case symbol = "2. Symbol"
         }
+        
+        init(symbol: String) {
+            self.symbol = symbol
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            symbol = try container.decode(String.self, forKey: .symbol)
+        }
     }
     
     struct TimeSeriesData: Decodable {
@@ -265,6 +277,14 @@ struct StockHistory: Decodable {
             case low = "3. low"
             case close = "4. close"
             case volume = "5. volume"
+        }
+        
+        init(open: Double, high: Double, low: Double, close: Double, volume: String) {
+            self.open = open
+            self.high = high
+            self.low = low
+            self.close = close
+            self.volume = volume
         }
         
         init(from decoder: Decoder) throws {
